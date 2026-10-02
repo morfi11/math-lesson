@@ -98,10 +98,75 @@ async function ttsSelfTest() {
   console.log("tts self-test:", JSON.stringify(ttsStatus));
 }
 
+// ---------- saved progress, shared by all devices ----------
+// One student, one document: { parts: { [pid]: { ..., t: lastChangedMs } } }.
+// Merged per part by time, so two devices never wipe each other's work.
+// Lives on the Railway volume (RAILWAY_VOLUME_MOUNT_PATH); without one it falls
+// back to ./data, which a redeploy wipes - /health says which is in use.
+const DATA_DIR = process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(__dirname, "data");
+const PROGRESS_FILE = path.join(DATA_DIR, "progress.json");
+const MAX_BODY = 512 * 1024;
+let saved = { parts: {} };
+try {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  saved = JSON.parse(fs.readFileSync(PROGRESS_FILE, "utf8"));
+  if (!saved.parts) saved.parts = {};
+} catch (e) {
+  if (e.code !== "ENOENT") console.error("progress load failed:", e.message);
+}
+
+function mergeParts(into, from) {
+  let changed = false;
+  for (const [pid, st] of Object.entries(from || {})) {
+    if (!/^q\d+p\d+$/.test(pid) || !st || typeof st !== "object") continue;
+    if (!into[pid] || (st.t || 0) > (into[pid].t || 0)) { into[pid] = st; changed = true; }
+  }
+  return changed;
+}
+
+let writing = Promise.resolve();
+function persist() {
+  // write-then-rename so a crash mid-write never leaves a half file; writes are serialized
+  writing = writing.then(async () => {
+    const tmp = PROGRESS_FILE + ".tmp";
+    await fs.promises.writeFile(tmp, JSON.stringify(saved));
+    await fs.promises.rename(tmp, PROGRESS_FILE);
+  }).catch((e) => console.error("progress save failed:", e.message));
+  return writing;
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks = [];
+    req.on("data", (c) => {
+      size += c.length;
+      if (size > MAX_BODY) { reject(Object.assign(new Error("too large"), { status: 413 })); req.destroy(); }
+      else chunks.push(c);
+    });
+    req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+    req.on("error", reject);
+  });
+}
+
+async function handleProgress(req, res) {
+  if (req.method === "GET") return json(res, 200, saved);
+  if (req.method !== "PUT") return json(res, 405, { error: "GET or PUT" });
+  try {
+    const body = JSON.parse(await readBody(req));
+    if (mergeParts(saved.parts, body.parts)) await persist();
+    json(res, 200, saved); // the merged result, so the device picks up the other devices' work
+  } catch (e) {
+    json(res, e.status || 400, { error: e.status ? "too large" : "bad progress data" });
+  }
+}
+
 http
   .createServer((req, res) => {
     const urlPath = decodeURIComponent(req.url.split("?")[0]);
-    if (urlPath === "/health") return json(res, 200, { ok: true, tts: ttsStatus });
+    if (urlPath === "/health")
+      return json(res, 200, { ok: true, tts: ttsStatus, progress: { dir: DATA_DIR, volume: !!process.env.RAILWAY_VOLUME_MOUNT_PATH } });
+    if (urlPath === "/api/progress") return handleProgress(req, res).catch((e) => json(res, 500, { error: String(e.message) }));
     if (urlPath === "/tts") {
       if (req.method !== "GET") return json(res, 405, { error: "GET only" });
       return handleTts(req, res);
@@ -132,6 +197,6 @@ http
     });
   })
   .listen(PORT, "0.0.0.0", () => {
-    console.log(`math-lesson listening on ${PORT}`);
+    console.log(`math-lesson listening on ${PORT}; progress in ${PROGRESS_FILE} (volume: ${!!process.env.RAILWAY_VOLUME_MOUNT_PATH})`);
     ttsSelfTest();
   });

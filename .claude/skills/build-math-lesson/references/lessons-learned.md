@@ -45,6 +45,9 @@
 - Railway project `math-lesson`, service `math-lesson`, root `/`, deploys `main`,
   healthcheck `/health` (which also reports the speech status). Domain:
   https://math-lesson-production.up.railway.app
+- Progress lives in `progress.json` on the Railway **volume** mounted at `/data`.
+  Without the volume, a redeploy wipes it. `/health` reports
+  `progress.volume: true/false`, and the server logs its data dir at startup.
 - The sandbox can't open `*.up.railway.app`. Verify with `list-deployments` and
   `get-logs`, and say plainly that the live page wasn't opened.
 

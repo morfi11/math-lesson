@@ -166,3 +166,5 @@ button.linkish { background: none; border: none; color: var(--primary); padding:
 .reset-row { margin-top: 10px; text-align: left; }
 .reset-row button { color: var(--muted); font-size: 14px; }
 .badge.done { background: var(--primary-soft); color: var(--primary); }
+.sync { margin-inline-start: auto; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.sync.offline { color: #b45309; }

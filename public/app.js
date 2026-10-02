@@ -460,9 +460,71 @@ let progress = { parts: {} };
 try { progress = JSON.parse(localStorage.getItem(STORE_KEY)) || progress; } catch (e) {}
 if (!progress.parts) progress.parts = {};
 
-function saveProgress() {
+// Every change stamps the part with a time; the server keeps the newest version of each part.
+function saveProgress(...pids) {
+  const now = Date.now();
+  pids.forEach((pid) => (partState(pid).t = now));
+  saveLocal();
+  scheduleSync();
+}
+function saveLocal() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(progress)); } catch (e) {} // private mode etc: still works, just not saved
 }
+
+// ---------- sync with the server, so progress follows Ofir to any device ----------
+let syncTimer = null, syncing = false, syncAgain = false;
+function scheduleSync() {
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(syncProgress, 800);
+}
+
+async function syncProgress() {
+  if (syncing) { syncAgain = true; return; }
+  syncing = true;
+  setSyncStatus("saving");
+  try {
+    const res = await fetch("/api/progress", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ parts: progress.parts }),
+    });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const server = await res.json();
+    // take anything newer from other devices
+    const changed = [];
+    for (const [pid, st] of Object.entries(server.parts || {})) {
+      const mine = progress.parts[pid];
+      if (!mine || (st.t || 0) > (mine.t || 0)) { progress.parts[pid] = st; changed.push(pid); }
+    }
+    if (changed.length) { saveLocal(); refreshAfterSync(changed); }
+    setSyncStatus("saved");
+  } catch (e) {
+    setSyncStatus("offline"); // still saved on this device; the next sync sends it
+  } finally {
+    syncing = false;
+    if (syncAgain) { syncAgain = false; scheduleSync(); }
+  }
+}
+
+// Re-draw the page if another device changed what's on it (but never while she's typing).
+function refreshAfterSync(changed) {
+  const h = location.hash.replace(/^#\/?/, "");
+  const m = h.match(/^q\/(\d+)$/);
+  const typing = document.activeElement && document.activeElement.tagName === "INPUT";
+  if (m && changed.some((pid) => pid.startsWith(`q${m[1]}p`)) && !typing) viewQuestion(Number(m[1]));
+  else if (!m && h !== "learn") viewHome();
+}
+
+function setSyncStatus(st) {
+  const el = document.getElementById("sync");
+  if (!el) return;
+  el.className = "sync " + st;
+  el.textContent = { saving: "☁️ שומר…", saved: "☁️ נשמר", offline: "⚠️ לא מחובר – נשמר במכשיר" }[st];
+  el.title = st === "offline" ? "התשובות שמורות במכשיר הזה ויישלחו לשרת כשיהיה חיבור" : "התשובות שמורות בשרת וזמינות בכל מכשיר";
+}
+
+document.addEventListener("visibilitychange", () => { if (!document.hidden) syncProgress(); });
+window.addEventListener("online", syncProgress);
 const partState = (pid) => (progress.parts[pid] = progress.parts[pid] || {});
 
 // Read the current answer inputs of a part as plain data, and put them back.
@@ -555,7 +617,7 @@ function viewQuestion(num) {
           fb.innerHTML = "";
           box.querySelectorAll(".right, .wrong").forEach((el) => el.classList.remove("right", "wrong"));
         }
-        saveProgress();
+        saveProgress(pid);
       };
       box.addEventListener("input", onEdit);
       box.addEventListener("change", onEdit);
@@ -564,15 +626,17 @@ function viewQuestion(num) {
         const ok = runCheck(p, pid);
         st.checked = ok !== undefined;
         st.ok = !!ok;
-        saveProgress();
+        saveProgress(pid);
       });
     }
   });
 
   app.querySelector("[data-reset]").addEventListener("click", () => {
     if (!confirm("למחוק את כל התשובות והרמזים בשאלה הזו ולהתחיל מחדש?")) return;
-    q.parts.forEach((_, pi) => delete progress.parts[`q${q.num}p${pi}`]);
-    saveProgress();
+    // an empty, time-stamped state (not a delete) so the reset also reaches the other devices
+    const pids = q.parts.map((_, pi) => `q${q.num}p${pi}`);
+    pids.forEach((pid) => (progress.parts[pid] = {}));
+    saveProgress(...pids);
     viewQuestion(num);
   });
 }
@@ -622,7 +686,7 @@ function wireHelp(p, pid, st) {
 
   btn.addEventListener("click", () => {
     addHint(st.hints++);
-    saveProgress();
+    saveProgress(pid);
     refreshButtons();
   });
 
@@ -640,14 +704,14 @@ function wireHelp(p, pid, st) {
       st.min = el.classList.contains("min") ? [...new Set([...st.min, i])] : st.min.filter((x) => x !== i);
       el.querySelector('[data-act="min"]').textContent = el.classList.contains("min") ? "+" : "−";
     }
-    saveProgress();
+    saveProgress(pid);
     refreshButtons();
   });
 
   reopen.addEventListener("click", () => {
     box.querySelectorAll(".hint").forEach((el) => (el.hidden = false));
     st.closed = [];
-    saveProgress();
+    saveProgress(pid);
     refreshButtons();
   });
 
@@ -658,7 +722,7 @@ function wireHelp(p, pid, st) {
   solBtn.addEventListener("click", () => {
     st.sol = sol.hidden;
     showSol(st.sol);
-    saveProgress();
+    saveProgress(pid);
   });
 }
 
@@ -673,3 +737,4 @@ function route() {
 }
 window.addEventListener("hashchange", route);
 route();
+syncProgress(); // pull what was done on other devices
