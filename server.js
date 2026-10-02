@@ -2,6 +2,8 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+// msedge-tts uses the global Web Crypto, which older Node versions don't expose.
+if (!globalThis.crypto) globalThis.crypto = require("crypto").webcrypto;
 const { MsEdgeTTS, OUTPUT_FORMAT } = require("msedge-tts");
 
 const PORT = process.env.PORT || 3000;
