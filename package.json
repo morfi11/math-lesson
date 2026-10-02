@@ -1,0 +1,12 @@
+{
+  "name": "math-lesson",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ofir's grade 7 math lesson - coordinate system, segments parallel to the axes, perimeters and areas",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
