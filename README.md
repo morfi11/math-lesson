@@ -16,3 +16,5 @@ It's plain HTML/JS served by a zero-dependency Node server (`server.js`).
 
 Railway project `math-lesson`, deployed from `main` of this repo.
 Railway detects Node and runs `npm start`. Health check: `/health`.
+
+See `CLAUDE.md` and the `build-math-lesson` skill (`.claude/skills/`) for how lessons are built.
