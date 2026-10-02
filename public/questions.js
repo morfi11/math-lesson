@@ -24,6 +24,17 @@ const LEARN = {
         "לשתי נקודות הקצה יש **אותו שיעור $y$**.<br>" +
         "אורך הקטע = ההפרש בין שיעורי ה-$x$ (הגדול פחות הקטן).<br>" +
         "דוגמה: $(2,4)$ ו-$(7,4)$ ← אורך $7-2=5$",
+      figure: {
+        xMax: 8, yMax: 5, grid: true, ticks: true,
+        items: [
+          { type: "guides", x: 2, y: 4, toY: false },
+          { type: "guides", x: 7, y: 4 },
+          { type: "segment", from: [2, 4], to: [7, 4], strong: true },
+          { type: "dim", from: [2, 4], to: [7, 4], text: "7 − 2 = 5", off: -16 },
+          { type: "point", x: 2, y: 4, label: "(2,4)", pos: "sw" },
+          { type: "point", x: 7, y: 4, label: "(7,4)", pos: "se" },
+        ],
+      },
     },
     {
       title: "קטע המקביל לציר ה-$y$ (אנכי)",
@@ -31,6 +42,17 @@ const LEARN = {
         "לשתי נקודות הקצה יש **אותו שיעור $x$**.<br>" +
         "אורך הקטע = ההפרש בין שיעורי ה-$y$.<br>" +
         "דוגמה: $(3,1)$ ו-$(3,6)$ ← אורך $6-1=5$",
+      figure: {
+        xMax: 7, yMax: 7, grid: true, ticks: true,
+        items: [
+          { type: "guides", x: 3, y: 1, toX: false },
+          { type: "guides", x: 3, y: 6 },
+          { type: "segment", from: [3, 1], to: [3, 6], strong: true },
+          { type: "dim", from: [3, 1], to: [3, 6], text: "6 − 1 = 5", off: 16 },
+          { type: "point", x: 3, y: 6, label: "(3,6)", pos: "nw" },
+          { type: "point", x: 3, y: 1, label: "(3,1)", pos: "nw" },
+        ],
+      },
     },
     {
       title: "מלבן / ריבוע שצלעותיו מקבילות לצירים",
@@ -39,6 +61,17 @@ const LEARN = {
         "**וגם** שיעור ה-$y$ שלה נמצא בין שני ה-$y$ של המלבן.<br>" +
         "נקודה **על צלע**: אחד השיעורים שווה בדיוק לגבול, והשני בטווח.<br>" +
         "אחרת – הנקודה **מחוץ** למלבן.",
+      figure: {
+        xMax: 8, yMax: 6, grid: true, ticks: true,
+        items: [
+          rect(2, 1, 6, 4, "blue"),
+          { type: "point", x: 4, y: 2.5, label: "בתוך", pos: "s", color: "good" },
+          { type: "point", x: 6, y: 3, label: "על צלע", pos: "e", color: "edge" },
+          { type: "point", x: 7, y: 5, label: "מחוץ", pos: "n", color: "bad" },
+          { type: "point", x: 2, y: 1, label: "(2,1)", pos: "sw" },
+          { type: "point", x: 6, y: 4, label: "(6,4)", pos: "ne" },
+        ],
+      },
     },
     {
       title: "היקף ושטח",
@@ -46,6 +79,20 @@ const LEARN = {
         "היקף מלבן = סכום אורכי 4 הצלעות = 2 × אורך + 2 × רוחב<br>" +
         "שטח מלבן = אורך × רוחב<br>" +
         "בריבוע כל הצלעות שוות: היקף = 4 × צלע, שטח = צלע × צלע",
+      figure: {
+        xMax: 8, yMax: 6, grid: true, ticks: true,
+        items: [
+          rect(1, 1, 6, 4, "soft"),
+          { type: "dim", from: [1, 4], to: [6, 4], text: "6 − 1 = 5", off: -16 },
+          { type: "dim", from: [6, 1], to: [6, 4], text: "4 − 1 = 3", off: 14 },
+          { type: "text", x: 3.5, y: 3.45, text: "שטח", rtl: true, color: "point" },
+          { type: "text", x: 3.5, y: 2.9, text: "5 × 3 = 15" },
+          { type: "text", x: 3.5, y: 2.1, text: "היקף", rtl: true, color: "point" },
+          { type: "text", x: 3.5, y: 1.55, text: "5+3+5+3 = 16" },
+          { type: "point", x: 1, y: 1, label: "(1,1)", pos: "w" },
+          { type: "point", x: 6, y: 4, label: "(6,4)", pos: "ne" },
+        ],
+      },
     },
   ],
   intro:
@@ -70,6 +117,18 @@ const LEARN = {
         "הנקודה $P$ נמצאת **מימין** לנקודה $M$, ולכן שיעור ה-$x$ שלה **גדול ב-$3$** משיעור ה-$x$ של הנקודה $M$ ← $4+3=7$.",
         "שיעורי הנקודה $P$ הם $(7,2)$.",
       ],
+      solutionFigure: {
+        xMax: 9, yMax: 4, grid: true, ticks: true,
+        items: [
+          { type: "guides", x: 4, y: 2, toY: false },
+          { type: "guides", x: 7, y: 2 },
+          { type: "segment", from: [4, 2], to: [7, 2], strong: true },
+          { type: "dim", from: [4, 2], to: [7, 2], text: "3", off: -16 },
+          { type: "point", x: 4, y: 2, label: "M(4,2)", pos: "sw" },
+          { type: "point", x: 7, y: 2, label: "P(7,2)", pos: "se", color: "good" },
+          { type: "text", x: 5.5, y: 0.5, text: "4 + 3 = 7" },
+        ],
+      },
     },
     {
       num: 2,
@@ -90,6 +149,20 @@ const LEARN = {
         "הנקודה $L$ נמצאת **מתחת** לנקודה $K$, ולכן שיעור ה-$y$ שלה **קטן ב-$2$** משיעור ה-$y$ של הנקודה $K$ (כי אורך צלע הריבוע הוא $2$, כפי שחישבנו בסעיף (א)) ← $4-2=2$.",
         "שיעורי הנקודה $L$ הם $(3,2)$.",
       ],
+      solutionFigure: {
+        xMax: 5, yMax: 5, grid: true, ticks: true,
+        items: [
+          { type: "guides", x: 3, y: 4 },
+          { type: "guides", x: 3, y: 2 },
+          rect(1, 2, 3, 4, "soft"),
+          { type: "segment", from: [3, 2], to: [3, 4], strong: true },
+          { type: "dim", from: [3, 2], to: [3, 4], text: "8 : 4 = 2", off: 16 },
+          { type: "dim", from: [1, 4], to: [3, 4], text: "2", off: -14 },
+          { type: "point", x: 3, y: 4, label: "K(3,4)", pos: "ne" },
+          { type: "point", x: 3, y: 2, label: "L(3,2)", pos: "se", color: "good" },
+          { type: "text", x: 2, y: 1.2, text: "4 − 2 = 2" },
+        ],
+      },
     },
   ],
 };

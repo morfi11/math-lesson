@@ -12,6 +12,7 @@ const COLORS = {
   point: "#1f2335",
   good: "#17a35a",
   bad: "#e0434b",
+  edge: "#d97706",
   blue: ["rgba(59,130,246,0.18)", "#3b82f6"],
   orange: ["rgba(240,138,36,0.22)", "#f08a24"],
   soft: ["rgba(91,79,214,0.12)", "#1f2335"],
@@ -67,6 +68,34 @@ function renderFigure(fig) {
       if (it.label) {
         const [lx, ly] = it.labelAt;
         labels.push(`<text x="${X(lx)}" y="${Y(ly) + 5}" font-size="13" text-anchor="middle" fill="${stroke}" font-weight="500" direction="rtl">${it.label}</text>`);
+      }
+    } else if (it.type === "guides") {
+      // dashed lines from a point down to the x-axis and across to the y-axis
+      const c = COLORS[it.color] || "#8b84e8";
+      const dash = `stroke="${c}" stroke-width="1.5" stroke-dasharray="4 4"`;
+      if (it.toX !== false) out.push(`<line x1="${X(it.x)}" y1="${Y(it.y)}" x2="${X(it.x)}" y2="${Y(0)}" ${dash}/>`);
+      if (it.toY !== false) out.push(`<line x1="${X(it.x)}" y1="${Y(it.y)}" x2="${X(0)}" y2="${Y(it.y)}" ${dash}/>`);
+    } else if (it.type === "dim") {
+      // length marker next to a horizontal or vertical segment: |<-- text -->|
+      const [x1, y1] = it.from, [x2, y2] = it.to;
+      const c = COLORS[it.color] || "#d9480f";
+      const off = it.off ?? -16; // pixels; horizontal: negative = above, vertical: positive = right
+      const st = `stroke="${c}" stroke-width="1.6"`;
+      const txt = (x, y, anchor) =>
+        labels.push(`<text x="${x}" y="${y}" font-size="14" font-weight="700" text-anchor="${anchor}" fill="${c}" direction="ltr" ` +
+          `paint-order="stroke" stroke="#fff" stroke-width="4" stroke-linejoin="round">${it.text}</text>`);
+      if (y1 === y2) {
+        const yy = Y(y1) + off, a = X(x1), b = X(x2);
+        out.push(`<line x1="${a}" y1="${yy}" x2="${b}" y2="${yy}" ${st}/>`,
+          `<line x1="${a}" y1="${yy - 5}" x2="${a}" y2="${yy + 5}" ${st}/>`,
+          `<line x1="${b}" y1="${yy - 5}" x2="${b}" y2="${yy + 5}" ${st}/>`);
+        txt((a + b) / 2, off < 0 ? yy - 7 : yy + 17, "middle");
+      } else {
+        const xx = X(x1) + off, a = Y(y1), b = Y(y2);
+        out.push(`<line x1="${xx}" y1="${a}" x2="${xx}" y2="${b}" ${st}/>`,
+          `<line x1="${xx - 5}" y1="${a}" x2="${xx + 5}" y2="${a}" ${st}/>`,
+          `<line x1="${xx - 5}" y1="${b}" x2="${xx + 5}" y2="${b}" ${st}/>`);
+        txt(off > 0 ? xx + 8 : xx - 8, (a + b) / 2 + 5, off > 0 ? "start" : "end");
       }
     } else if (it.type === "segment") {
       const [x1, y1] = it.from, [x2, y2] = it.to;
@@ -276,7 +305,10 @@ function viewLearn() {
   SAY.length = 0;
   const row = (text, inner) => `<div class="say-row">${sayBtn(text)}<div>${inner}</div></div>`;
   const keys = LEARN.keyIdeas
-    .map((k) => `<div class="card key">${row(k.title + ". " + k.body, `<h3>${fmt(k.title)}</h3><div>${fmt(k.body)}</div>`)}</div>`)
+    .map((k) => `<div class="card key"><div class="question">
+        ${row(k.title + ". " + k.body, `<h3>${fmt(k.title)}</h3><div>${fmt(k.body)}</div>`)}
+        ${k.figure ? renderFigure(k.figure) : ""}
+      </div></div>`)
     .join("");
   const examples = LEARN.examples
     .map(
@@ -292,6 +324,7 @@ function viewLearn() {
         <div class="solution" id="ex${ex.num}" hidden>
           <h4>פתרון</h4>
           ${ex.solution.map((s, i) => row(s, `<b>${i + 1}.</b> ${fmt(s)}`)).join("")}
+          ${ex.solutionFigure ? renderFigure(ex.solutionFigure) : ""}
         </div>
       </div>`
     )
