@@ -186,26 +186,46 @@ function hebrewVoice() {
   return speechSynthesis.getVoices().find((v) => /^he|^iw/i.test(v.lang));
 }
 
+let currentAudio = null;
+
 function stopSpeaking() {
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
   if (window.speechSynthesis) speechSynthesis.cancel();
-  if (speakingBtn) speakingBtn.classList.remove("on");
+  if (speakingBtn) speakingBtn.classList.remove("on", "loading");
   speakingBtn = null;
 }
 
+// Speech is generated on our server (Hebrew neural voice), so it works on any device.
+// If the server can't, fall back to the device's own Hebrew voice, if it has one.
 function speak(btn) {
-  if (!window.speechSynthesis) return alert("הדפדפן הזה לא תומך בהקראה.");
   const wasThis = speakingBtn === btn;
   stopSpeaking();
   if (wasThis) return; // second tap stops
-  const u = new SpeechSynthesisUtterance(SAY[btn.dataset.say]);
+  const text = SAY[btn.dataset.say];
+  speakingBtn = btn;
+  btn.classList.add("on", "loading");
+  const audio = new Audio("/tts?t=" + encodeURIComponent(text));
+  currentAudio = audio;
+  const done = () => { if (currentAudio === audio) stopSpeaking(); };
+  audio.addEventListener("playing", () => btn.classList.remove("loading"));
+  audio.addEventListener("ended", done);
+  audio.addEventListener("error", () => {
+    if (currentAudio !== audio) return;
+    currentAudio = null;
+    speakOnDevice(btn, text);
+  });
+  audio.play().catch(() => {}); // a load failure is handled by the "error" listener
+}
+
+function speakOnDevice(btn, text) {
+  const v = window.speechSynthesis && hebrewVoice();
+  if (!v) { stopSpeaking(); return showNoVoiceHelp(); } // a non-Hebrew voice would read gibberish
+  const u = new SpeechSynthesisUtterance(text);
   u.lang = "he-IL";
   u.rate = 0.9;
-  const v = hebrewVoice();
-  if (v) u.voice = v;
-  else if (speechSynthesis.getVoices().length) return showNoVoiceHelp(); // a non-Hebrew voice would read gibberish
+  u.voice = v;
   u.onend = u.onerror = () => { if (speakingBtn === btn) stopSpeaking(); };
-  speakingBtn = btn;
-  btn.classList.add("on");
+  btn.classList.remove("loading");
   speechSynthesis.speak(u);
 }
 
@@ -238,8 +258,8 @@ function showNoVoiceHelp() {
       "afterbegin",
       `<div class="card novoice" id="novoice">
         <button class="close" aria-label="סגירה">✕</button>
-        <h3>🔇 אין קול בעברית במחשב הזה</h3>
-        <div>ההקראה משתמשת בקול שמותקן במחשב או בטלפון, ובמכשיר הזה אין קול עברי.</div>
+        <h3>🔇 ההקראה לא זמינה כרגע</h3>
+        <div>שירות ההקראה של האתר לא הגיב, ובמכשיר הזה אין קול עברי מותקן לגיבוי.</div>
         <div style="margin-top:6px">${steps[deviceKind()]}</div>
       </div>`
     );
