@@ -40,9 +40,11 @@ function renderFigure(fig) {
       out.push(`<line x1="${X(0)}" y1="${Y(j)}" x2="${X(fig.xMax)}" y2="${Y(j)}" stroke="#dcdbea" stroke-width="1"/>`);
   }
   if (fig.ticks) {
-    for (let i = 1; i <= fig.xMax; i++)
+    // tall grids get every other number, or the labels run into each other
+    const step = Math.max(fig.xMax, fig.yMax) > 10 ? 2 : 1;
+    for (let i = step; i <= fig.xMax; i += step)
       out.push(`<text x="${X(i)}" y="${Y(0) + 16}" font-size="12" text-anchor="middle" fill="#6b7086">${i}</text>`);
-    for (let j = 1; j <= fig.yMax; j++)
+    for (let j = step; j <= fig.yMax; j += step)
       out.push(`<text x="${X(0) - 8}" y="${Y(j) + 4}" font-size="12" text-anchor="end" fill="#6b7086">${j}</text>`);
   }
 
@@ -70,6 +72,12 @@ function renderFigure(fig) {
       const [x1, y1] = it.from, [x2, y2] = it.to;
       const stroke = it.strong ? "#5b4fd6" : "#1f2335";
       out.push(`<line x1="${X(x1)}" y1="${Y(y1)}" x2="${X(x2)}" y2="${Y(y2)}" stroke="${stroke}" stroke-width="${it.strong ? 4 : 2}" stroke-linecap="round"/>`);
+    } else if (it.type === "text") {
+      // free label, e.g. a side length; Hebrew-safe because `rtl` only applies when asked
+      labels.push(
+        `<text x="${X(it.x)}" y="${Y(it.y) + 5}" font-size="14" text-anchor="middle" fill="${COLORS[it.color] || "#5b4fd6"}" font-weight="700" ` +
+        `direction="${it.rtl ? "rtl" : "ltr"}" paint-order="stroke" stroke="#fff" stroke-width="4" stroke-linejoin="round">${it.text}</text>`
+      );
     } else if (it.type === "point") {
       const color = COLORS[it.color] || COLORS.point;
       out.push(`<circle cx="${X(it.x)}" cy="${Y(it.y)}" r="4.5" fill="${color}"/>`);
@@ -161,20 +169,108 @@ function viewLearn() {
   );
 }
 
+// Answer checks. Kinds:
+//   multi / single - choose option(s):    options: [{ text, correct }]
+//   fields         - numeric blanks:      fields: [{ label, answer }]
+//   point          - any valid point:     validate(x, y) -> "" when right, else the reason
+//   table          - one choice per row:  choices: [...], rows: [{ label, answer: choiceIndex }]
 function renderCheck(part, pid) {
   const c = part.check;
   if (!c) return "";
-  const type = c.kind === "multi" ? "checkbox" : "radio";
-  const opts = c.options
-    .map(
-      (o, i) => `<label class="opt" data-i="${i}">
-        <input type="${type}" name="${pid}" value="${i}"> ${fmt(o.text)}
-      </label>`
-    )
-    .join("");
-  return `<div class="options" id="${pid}-opts">${opts}</div>
+  let body = "";
+  if (c.kind === "multi" || c.kind === "single") {
+    const type = c.kind === "multi" ? "checkbox" : "radio";
+    body = `<div class="options" id="${pid}-opts">${c.options
+      .map((o, i) => `<label class="opt" data-i="${i}"><input type="${type}" name="${pid}" value="${i}"> ${fmt(o.text)}</label>`)
+      .join("")}</div>`;
+  } else if (c.kind === "fields") {
+    body = `<div class="fields" id="${pid}-opts">${c.fields
+      .map((f, i) => `<label class="field" data-i="${i}"><span>${fmt(f.label)}</span>
+         <input type="text" inputmode="decimal" autocomplete="off" dir="ltr"></label>`)
+      .join("")}</div>`;
+  } else if (c.kind === "point") {
+    body = `<div class="fields" id="${pid}-opts"><label class="field pointfield"><span class="m">(</span>
+        <input type="text" inputmode="decimal" dir="ltr" aria-label="x" placeholder="x"><span class="m">,</span>
+        <input type="text" inputmode="decimal" dir="ltr" aria-label="y" placeholder="y"><span class="m">)</span></label></div>`;
+  } else if (c.kind === "table") {
+    body = `<div class="ctable" id="${pid}-opts">${c.rows
+      .map((r, i) => `<div class="crow" data-i="${i}"><span class="clabel">${fmt(r.label)}</span>${c.choices
+        .map((ch, j) => `<label class="opt"><input type="radio" name="${pid}-r${i}" value="${j}"> ${fmt(ch)}</label>`)
+        .join("")}</div>`)
+      .join("")}</div>`;
+  }
+  return `${body}
     <div class="actions"><button class="primary" data-check="${pid}">בדיקה ✔</button></div>
     <div id="${pid}-fb"></div>`;
+}
+
+// Accepts "2.5", "2,5" isn't allowed (comma is the coordinate separator), "2½" and "5/2".
+function parseNum(str) {
+  let t = String(str).trim().replace(/\s+/g, "").replace("−", "-");
+  if (!t) return NaN;
+  const half = t.match(/^(-?\d*)½$/);
+  if (half) return (half[1] === "" || half[1] === "-" ? 0 : Number(half[1])) + (t.startsWith("-") ? -0.5 : 0.5);
+  const frac = t.match(/^(-?\d+)\/(\d+)$/);
+  if (frac) return Number(frac[1]) / Number(frac[2]);
+  return /^-?\d*\.?\d+$/.test(t) ? Number(t) : NaN;
+}
+const same = (a, b) => Math.abs(a - b) < 1e-9;
+
+function runCheck(p, pid) {
+  const c = p.check;
+  const box = document.getElementById(`${pid}-opts`);
+  const fb = document.getElementById(`${pid}-fb`);
+  const say = (ok, msg) => (fb.innerHTML = `<div class="feedback ${ok ? "ok" : "no"}">${fmt(msg)}</div>`);
+  const mark = (el, ok) => { el.classList.remove("right", "wrong"); if (ok !== null) el.classList.add(ok ? "right" : "wrong"); };
+
+  if (c.kind === "multi" || c.kind === "single") {
+    let allRight = true, any = false;
+    box.querySelectorAll(".opt").forEach((lab) => {
+      const o = c.options[lab.dataset.i];
+      const on = lab.querySelector("input").checked;
+      any = any || on;
+      mark(lab, on ? o.correct : null);
+      if (on !== o.correct) allRight = false;
+    });
+    if (!any) return say(false, "בחרי קודם תשובה 🙂");
+    return say(allRight, allRight ? c.right : c.wrong);
+  }
+  if (c.kind === "fields") {
+    let allRight = true, empty = false;
+    box.querySelectorAll(".field").forEach((lab) => {
+      const f = c.fields[lab.dataset.i];
+      const raw = lab.querySelector("input").value;
+      if (!raw.trim()) { empty = true; allRight = false; return mark(lab, null); }
+      const ok = same(parseNum(raw), f.answer);
+      mark(lab, ok);
+      if (!ok) allRight = false;
+    });
+    if (allRight) return say(true, c.right);
+    return say(false, empty ? "יש עוד משבצות ריקות – מלאי את כולן 🙂" : c.wrong || "יש טעות במשבצות המסומנות באדום. נסי שוב, או פתחי רמז.");
+  }
+  if (c.kind === "point") {
+    const [xi, yi] = box.querySelectorAll("input");
+    const x = parseNum(xi.value), y = parseNum(yi.value);
+    const lab = box.querySelector(".field");
+    if (isNaN(x) || isNaN(y)) { mark(lab, null); return say(false, "כתבי מספר בכל אחת מהמשבצות (x וגם y) 🙂"); }
+    const why = c.validate(x, y);
+    mark(lab, !why);
+    return say(!why, why ? why : c.right.replace("{p}", `$(${x},${y})$`));
+  }
+  if (c.kind === "table") {
+    let allRight = true, empty = false;
+    box.querySelectorAll(".crow").forEach((row) => {
+      const r = c.rows[row.dataset.i];
+      const sel = row.querySelector("input:checked");
+      row.querySelectorAll(".opt").forEach((o) => mark(o, null));
+      if (!sel) { empty = true; allRight = false; return; }
+      const ok = Number(sel.value) === r.answer;
+      mark(sel.closest(".opt"), ok);
+      if (!ok) allRight = false;
+    });
+    if (allRight) return say(true, c.right);
+    return say(false, empty ? "יש עוד שורות בלי תשובה 🙂" : c.wrong || "חלק מהתשובות לא נכונות (מסומנות באדום). נסי שוב!");
+  }
 }
 
 function viewQuestion(num) {
@@ -250,24 +346,7 @@ function viewQuestion(num) {
       });
     }
     if (p.check) {
-      app.querySelector(`[data-check="${pid}"]`).addEventListener("click", () => {
-        const labels = [...document.querySelectorAll(`#${pid}-opts .opt`)];
-        let allRight = true, any = false;
-        labels.forEach((lab) => {
-          const o = p.check.options[lab.dataset.i];
-          const on = lab.querySelector("input").checked;
-          any = any || on;
-          lab.classList.remove("right", "wrong");
-          if (on) lab.classList.add(o.correct ? "right" : "wrong");
-          if (on !== o.correct) allRight = false;
-        });
-        const fb = document.getElementById(`${pid}-fb`);
-        if (!any) {
-          fb.innerHTML = `<div class="feedback no">בחרי קודם תשובה 🙂</div>`;
-        } else {
-          fb.innerHTML = `<div class="feedback ${allRight ? "ok" : "no"}">${fmt(allRight ? p.check.right : p.check.wrong)}</div>`;
-        }
-      });
+      app.querySelector(`[data-check="${pid}"]`).addEventListener("click", () => runCheck(p, pid));
     }
   });
 }

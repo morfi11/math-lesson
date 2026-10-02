@@ -124,3 +124,19 @@ button:disabled { opacity: .5; cursor: default; }
 .key h3 { margin: 0 0 4px; font-size: 18px; }
 @keyframes pop { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 .nw { white-space: nowrap; }
+.fields { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-top: 10px; }
+.field {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+  border: 1px solid var(--line); border-radius: 10px; background: #fff;
+}
+.field input {
+  font: inherit; width: 70px; padding: 2px 6px; text-align: center;
+  border: 1px solid var(--line); border-radius: 8px;
+}
+.pointfield { direction: ltr; }
+.pointfield input { width: 56px; }
+.field.right { border-color: var(--good); background: var(--good-soft); }
+.field.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.ctable { display: grid; gap: 6px; margin-top: 10px; }
+.crow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.clabel { min-width: 90px; font-weight: 500; }

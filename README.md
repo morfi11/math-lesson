@@ -2,8 +2,9 @@
 
 A small standalone web app for Ofir: questions 16–22 from pages 29–30
 (segments parallel to the axes, perimeters and areas). Each question shows
-the full drawing and full text. Parts can have step-by-step hints (each one
-can include its own drawing), a full solution and an answer check.
+the full drawing and full text. Every part has step-by-step hints (each one
+can include its own drawing), a full solution and an answer check (choices,
+number blanks, a free point that is validated, or an inside/on/outside table).
 
 It's plain HTML/JS served by a zero-dependency Node server (`server.js`).
 
