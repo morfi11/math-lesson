@@ -143,7 +143,8 @@ function viewHome() {
     return `<a class="qcard" href="#/q/${q.num}">
       <div class="n">שאלה ${q.num}</div>
       <div class="t">${fmt(firstLine)}</div>
-      <div>${ready ? '<span class="badge">💡 עם רמזים והסברים</span>' : '<span class="badge soon">רמזים – בקרוב</span>'}</div>
+      <div>${ready ? '<span class="badge">💡 עם רמזים והסברים</span>' : '<span class="badge soon">רמזים – בקרוב</span>'}
+        ${(() => { const sc = questionScore(q); return sc.ok ? `<span class="badge done">✔ ${sc.ok}/${sc.total}</span>` : ""; })()}</div>
     </a>`;
   }).join("");
   app.innerHTML = `
@@ -399,7 +400,7 @@ function runCheck(p, pid) {
   const c = p.check;
   const box = document.getElementById(`${pid}-opts`);
   const fb = document.getElementById(`${pid}-fb`);
-  const say = (ok, msg) => (fb.innerHTML = `<div class="feedback ${ok ? "ok" : "no"}">${fmt(msg)}</div>`);
+  const say = (ok, msg) => { fb.innerHTML = `<div class="feedback ${ok ? "ok" : "no"}">${fmt(msg)}</div>`; return ok; };
   const mark = (el, ok) => { el.classList.remove("right", "wrong"); if (ok !== null) el.classList.add(ok ? "right" : "wrong"); };
 
   if (c.kind === "multi" || c.kind === "single") {
@@ -452,6 +453,44 @@ function runCheck(p, pid) {
   }
 }
 
+// ---------- saved progress (this browser, survives closing the tab) ----------
+// { parts: { [pid]: { v: inputs, checked, ok, hints: shownCount, closed: [i], min: [i], sol } } }
+const STORE_KEY = "math-lesson:progress:v1";
+let progress = { parts: {} };
+try { progress = JSON.parse(localStorage.getItem(STORE_KEY)) || progress; } catch (e) {}
+if (!progress.parts) progress.parts = {};
+
+function saveProgress() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(progress)); } catch (e) {} // private mode etc: still works, just not saved
+}
+const partState = (pid) => (progress.parts[pid] = progress.parts[pid] || {});
+
+// Read the current answer inputs of a part as plain data, and put them back.
+function readInputs(p, pid) {
+  const box = document.getElementById(`${pid}-opts`);
+  const k = p.check.kind;
+  if (k === "multi" || k === "single") return [...box.querySelectorAll("input")].map((i) => i.checked);
+  if (k === "fields" || k === "point") return [...box.querySelectorAll("input")].map((i) => i.value);
+  if (k === "table") return [...box.querySelectorAll(".crow")].map((r) => { const c = r.querySelector("input:checked"); return c ? Number(c.value) : null; });
+}
+function writeInputs(p, pid, v) {
+  if (!v) return;
+  const box = document.getElementById(`${pid}-opts`);
+  const k = p.check.kind;
+  if (k === "multi" || k === "single") box.querySelectorAll("input").forEach((i, n) => (i.checked = !!v[n]));
+  else if (k === "fields" || k === "point") box.querySelectorAll("input").forEach((i, n) => (i.value = v[n] ?? ""));
+  else if (k === "table") box.querySelectorAll(".crow").forEach((r, n) => {
+    if (v[n] != null) { const c = r.querySelector(`input[value="${v[n]}"]`); if (c) c.checked = true; }
+  });
+}
+
+// Count of parts answered correctly in a question, for the home page.
+function questionScore(q) {
+  let ok = 0, total = 0;
+  q.parts.forEach((p, pi) => { if (!p.check) return; total++; if ((progress.parts[`q${q.num}p${pi}`] || {}).ok) ok++; });
+  return { ok, total };
+}
+
 function viewQuestion(num) {
   const idx = QUESTIONS.findIndex((q) => q.num === num);
   if (idx < 0) return viewHome();
@@ -466,6 +505,7 @@ function viewQuestion(num) {
         ? `<div class="actions">
              <button class="hint-btn" data-hint="${pid}">💡 רמז (1 מתוך ${p.hints.length})</button>
              <button data-sol="${pid}">הצג פתרון מלא</button>
+             <button class="linkish" data-reopen="${pid}" hidden></button>
            </div>
            <div id="${pid}-hints"></div>
            <div class="solution" id="${pid}-sol" hidden>
@@ -492,41 +532,133 @@ function viewQuestion(num) {
       </div>
       ${parts}
     </div>
+    <div class="reset-row"><button class="linkish" data-reset>🗑️ התחלה מחדש של השאלה הזו</button></div>
     <div class="pager">
       ${prev ? `<a href="#/q/${prev.num}">→ שאלה ${prev.num}</a>` : `<a href="#/learn">→ הסבר</a>`}
       ${next ? `<a href="#/q/${next.num}">שאלה ${next.num} ←</a>` : "<span></span>"}
     </div>`;
 
-  // wire up hints / solutions / checks
+  // wire up hints / solutions / checks, restoring anything saved
   q.parts.forEach((p, pi) => {
     const pid = `q${q.num}p${pi}`;
-    if (p.hints) {
-      let shown = 0;
-      const btn = app.querySelector(`[data-hint="${pid}"]`);
-      const box = document.getElementById(`${pid}-hints`);
-      btn.addEventListener("click", () => {
-        const h = p.hints[shown++];
-        box.insertAdjacentHTML(
-          "beforeend",
-          `<div class="hint"><h4>${fmt(h.title)}</h4><div>${fmt(h.body)}</div>${h.figure ? renderFigure(h.figure) : ""}</div>`
-        );
-        if (shown >= p.hints.length) {
-          btn.disabled = true;
-          btn.textContent = "💡 אלה כל הרמזים";
-        } else {
-          btn.textContent = `💡 רמז הבא (${shown + 1} מתוך ${p.hints.length})`;
-        }
-      });
-      const solBtn = app.querySelector(`[data-sol="${pid}"]`);
-      solBtn.addEventListener("click", () => {
-        const el = document.getElementById(`${pid}-sol`);
-        el.hidden = !el.hidden;
-        solBtn.textContent = el.hidden ? "הצג פתרון מלא" : "הסתר פתרון";
-      });
-    }
+    const st = partState(pid);
+    if (p.hints) wireHelp(p, pid, st);
     if (p.check) {
-      app.querySelector(`[data-check="${pid}"]`).addEventListener("click", () => runCheck(p, pid));
+      const box = document.getElementById(`${pid}-opts`);
+      const fb = document.getElementById(`${pid}-fb`);
+      writeInputs(p, pid, st.v);
+      if (st.checked) runCheck(p, pid); // show the earlier result again
+      const onEdit = () => {
+        st.v = readInputs(p, pid);
+        if (st.checked) { // answer changed: the old verdict no longer applies
+          st.checked = false;
+          fb.innerHTML = "";
+          box.querySelectorAll(".right, .wrong").forEach((el) => el.classList.remove("right", "wrong"));
+        }
+        saveProgress();
+      };
+      box.addEventListener("input", onEdit);
+      box.addEventListener("change", onEdit);
+      app.querySelector(`[data-check="${pid}"]`).addEventListener("click", () => {
+        st.v = readInputs(p, pid);
+        const ok = runCheck(p, pid);
+        st.checked = ok !== undefined;
+        st.ok = !!ok;
+        saveProgress();
+      });
     }
+  });
+
+  app.querySelector("[data-reset]").addEventListener("click", () => {
+    if (!confirm("למחוק את כל התשובות והרמזים בשאלה הזו ולהתחיל מחדש?")) return;
+    q.parts.forEach((_, pi) => delete progress.parts[`q${q.num}p${pi}`]);
+    saveProgress();
+    viewQuestion(num);
+  });
+}
+
+// Hints appear one at a time; each can be minimized or closed. All of it is remembered.
+function wireHelp(p, pid, st) {
+  st.hints = st.hints || 0;
+  st.closed = st.closed || [];
+  st.min = st.min || [];
+  const btn = app.querySelector(`[data-hint="${pid}"]`);
+  const box = document.getElementById(`${pid}-hints`);
+  const reopen = app.querySelector(`[data-reopen="${pid}"]`);
+
+  const refreshButtons = () => {
+    if (st.hints >= p.hints.length) {
+      btn.disabled = true;
+      btn.textContent = "💡 אלה כל הרמזים";
+    } else {
+      btn.disabled = false;
+      btn.textContent = st.hints ? `💡 רמז הבא (${st.hints + 1} מתוך ${p.hints.length})` : `💡 רמז (1 מתוך ${p.hints.length})`;
+    }
+    reopen.hidden = !st.closed.length;
+    reopen.textContent = `↩ הצג רמזים שנסגרו (${st.closed.length})`;
+  };
+
+  const addHint = (i) => {
+    const h = p.hints[i];
+    box.insertAdjacentHTML(
+      "beforeend",
+      `<div class="hint" data-i="${i}">
+        <div class="hint-head">
+          <h4>${fmt(h.title)}</h4>
+          <button class="mini" data-act="min" title="מזעור" aria-label="מזעור">−</button>
+          <button class="mini" data-act="close" title="סגירה" aria-label="סגירה">✕</button>
+        </div>
+        <div class="hint-body"><div>${fmt(h.body)}</div>${h.figure ? renderFigure(h.figure) : ""}</div>
+      </div>`
+    );
+    const el = box.lastElementChild;
+    if (st.closed.includes(i)) el.hidden = true;
+    if (st.min.includes(i)) el.classList.add("min");
+    el.querySelector('[data-act="min"]').textContent = el.classList.contains("min") ? "+" : "−";
+  };
+
+  for (let i = 0; i < st.hints; i++) addHint(i);
+  refreshButtons();
+
+  btn.addEventListener("click", () => {
+    addHint(st.hints++);
+    saveProgress();
+    refreshButtons();
+  });
+
+  box.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-act]");
+    const head = e.target.closest(".hint-head");
+    if (!b && !head) return;
+    const el = e.target.closest(".hint");
+    const i = Number(el.dataset.i);
+    if (b && b.dataset.act === "close") {
+      el.hidden = true;
+      if (!st.closed.includes(i)) st.closed.push(i);
+    } else { // minimize button, or a click on the title bar
+      el.classList.toggle("min");
+      st.min = el.classList.contains("min") ? [...new Set([...st.min, i])] : st.min.filter((x) => x !== i);
+      el.querySelector('[data-act="min"]').textContent = el.classList.contains("min") ? "+" : "−";
+    }
+    saveProgress();
+    refreshButtons();
+  });
+
+  reopen.addEventListener("click", () => {
+    box.querySelectorAll(".hint").forEach((el) => (el.hidden = false));
+    st.closed = [];
+    saveProgress();
+    refreshButtons();
+  });
+
+  const solBtn = app.querySelector(`[data-sol="${pid}"]`);
+  const sol = document.getElementById(`${pid}-sol`);
+  const showSol = (on) => { sol.hidden = !on; solBtn.textContent = on ? "הסתר פתרון" : "הצג פתרון מלא"; };
+  showSol(!!st.sol);
+  solBtn.addEventListener("click", () => {
+    st.sol = sol.hidden;
+    showSol(st.sol);
+    saveProgress();
   });
 }
 

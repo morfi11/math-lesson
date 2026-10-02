@@ -153,3 +153,16 @@ button.say.on { background: var(--primary); animation: pulse 1s infinite; }
 .novoice h3 { margin: 0 0 4px; }
 .novoice .close { position: absolute; top: 10px; left: 10px; padding: 0 8px; }
 button.say.loading { animation: pulse .5s infinite; opacity: .7; }
+.hint-head { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.hint-head h4 { flex: 1; margin: 0; }
+.hint-body { margin-top: 4px; }
+.hint.min .hint-body { display: none; }
+.hint.min { padding-block: 6px; }
+button.mini {
+  width: 28px; height: 28px; padding: 0; border-radius: 8px; font-size: 16px; line-height: 1;
+  background: #fff; border-color: var(--hint-line); flex: none;
+}
+button.linkish { background: none; border: none; color: var(--primary); padding: 6px 4px; text-decoration: underline; }
+.reset-row { margin-top: 10px; text-align: left; }
+.reset-row button { color: var(--muted); font-size: 14px; }
+.badge.done { background: var(--primary-soft); color: var(--primary); }

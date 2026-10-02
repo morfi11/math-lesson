@@ -46,6 +46,11 @@ Railway or GitHub.
    - a **full solution**: numbered steps, plus a drawing when it helps
    If the user asks for a skeleton first, put every question in with full text and
    drawings, and hints for one question only. Mark the rest "רמזים – בקרוב".
+   Answers, checked results, opened/minimized/closed hints and open solutions are
+   **saved automatically** (localStorage, key `math-lesson:progress:v1`, per part id
+   `q<num>p<partIndex>`), so Ofir can leave and come back. Never renumber questions
+   or reorder parts in a lesson she has started, or her saved answers attach to the
+   wrong part. Add new parts at the end instead.
 4. **Drawings everywhere they help.** Points labelled with coordinates, dashed
    guides to the axes, length markers labelled with the arithmetic (`7 − 2 = 5`).
    Question figures are drawn to scale. Use a grid only when the book has one,
