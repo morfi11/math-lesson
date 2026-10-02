@@ -128,10 +128,97 @@ function viewHome() {
     <div class="grid-cards">${cards}</div>`;
 }
 
+// ---------- read aloud (Web Speech API, Hebrew voice) ----------
+// Latin point names as a Hebrew reader says them.
+const LETTER_NAMES = {
+  A: "איי", B: "בי", C: "סי", D: "די", I: "איי", K: "קיי", L: "אל", M: "אם", P: "פי", Q: "קיו", T: "טי",
+};
+
+// Turn a content string ($math$, **bold**, html) into something a Hebrew voice reads naturally.
+function toSpeech(str) {
+  const math = (m) =>
+    " " +
+    m
+      .replace(/\((-?[\d.½]+),(-?[\d.½]+)\)/g, " $1 פסיק $2 ")
+      .replace(/\(__,__\)/g, " ")
+      .replace(/(\d)½/g, "$1 וחצי")
+      .replace(/½/g, "חצי")
+      .replace(/\bx\b/g, " איקס ")
+      .replace(/\by\b/g, " וואי ")
+      .replace(/[A-Z]/g, (c) => " " + (LETTER_NAMES[c] || c) + " ")
+      .replace(/(\d)\s*[-−]\s*(\d)/g, "$1 פחות $2")
+      .replace(/\+/g, " ועוד ")
+      .replace(/[×·]/g, " כפול ")
+      .replace(/:/g, " חלקי ")
+      .replace(/=/g, " שווה ")
+      .replace(/</g, " קטן מ ")
+      .replace(/>/g, " גדול מ ") +
+    " ";
+  return String(str)
+    .replace(/<br\s*\/?>/g, ". ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\$([^$]+)\$/g, (_, m) => math(m))
+    .replace(/\*\*/g, "")
+    .replace(/(סעיף\s*)?\(([א-ד])\)/g, "סעיף $2")
+    .replace(/ \+ /g, " ועוד ")
+    .replace(/ = /g, " שווה ")
+    .replace(/ × /g, " כפול ")
+    .replace(/ \/ /g, " או ")
+    .replace(/←/g, ", ולכן ")
+    .replace(/[•✓✗]/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/(^|\s)([הולבמש])-\s*/g, "$1$2") // "ה- איקס" -> "האיקס"
+    .replace(/\s+([.,?])/g, "$1")
+    .replace(/\.{2,}/g, ".")
+    .trim();
+}
+
+const SAY = [];
+let speakingBtn = null;
+
+function sayBtn(text) {
+  SAY.push(toSpeech(text));
+  return `<button class="say" data-say="${SAY.length - 1}" title="הקראה" aria-label="הקראה">🔊</button>`;
+}
+
+function hebrewVoice() {
+  return speechSynthesis.getVoices().find((v) => /^he|^iw/i.test(v.lang));
+}
+
+function stopSpeaking() {
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  if (speakingBtn) speakingBtn.classList.remove("on");
+  speakingBtn = null;
+}
+
+function speak(btn) {
+  if (!window.speechSynthesis) return alert("הדפדפן הזה לא תומך בהקראה.");
+  const wasThis = speakingBtn === btn;
+  stopSpeaking();
+  if (wasThis) return; // second tap stops
+  const u = new SpeechSynthesisUtterance(SAY[btn.dataset.say]);
+  u.lang = "he-IL";
+  u.rate = 0.9;
+  const v = hebrewVoice();
+  if (v) u.voice = v;
+  else if (speechSynthesis.getVoices().length) {
+    btn.title = "לא נמצא קול בעברית במכשיר הזה";
+  }
+  u.onend = u.onerror = () => { if (speakingBtn === btn) stopSpeaking(); };
+  speakingBtn = btn;
+  btn.classList.add("on");
+  speechSynthesis.speak(u);
+}
+
+if (window.speechSynthesis) speechSynthesis.getVoices(); // some browsers load voices lazily
+
 function viewLearn() {
   renderNav("learn");
+  SAY.length = 0;
+  const row = (text, inner) => `<div class="say-row">${sayBtn(text)}<div>${inner}</div></div>`;
   const keys = LEARN.keyIdeas
-    .map((k) => `<div class="card key"><h3>${fmt(k.title)}</h3><div>${fmt(k.body)}</div></div>`)
+    .map((k) => `<div class="card key">${row(k.title + ". " + k.body, `<h3>${fmt(k.title)}</h3><div>${fmt(k.body)}</div>`)}</div>`)
     .join("");
   const examples = LEARN.examples
     .map(
@@ -139,14 +226,14 @@ function viewLearn() {
         <div class="question">
           <div>
             <h3 style="margin-top:0">דוגמה ${ex.num}</h3>
-            <div>${fmt(ex.text)}</div>
+            ${row(ex.text, fmt(ex.text))}
             <div class="actions"><button class="hint-btn" data-toggle="ex${ex.num}">הצג פתרון</button></div>
           </div>
           ${renderFigure(ex.figure)}
         </div>
         <div class="solution" id="ex${ex.num}" hidden>
           <h4>פתרון</h4>
-          <ol>${ex.solution.map((s) => `<li>${fmt(s)}</li>`).join("")}</ol>
+          ${ex.solution.map((s, i) => row(s, `<b>${i + 1}.</b> ${fmt(s)}`)).join("")}
         </div>
       </div>`
     )
@@ -157,9 +244,10 @@ function viewLearn() {
     <h2>מה חשוב לזכור</h2>
     ${keys}
     <h2>דוגמאות</h2>
-    <p>${fmt(LEARN.intro)}</p>
+    ${row(LEARN.intro, `<p style="margin:0">${fmt(LEARN.intro)}</p>`)}
     ${examples}
     <div class="pager"><span></span><a href="#/q/${QUESTIONS[0].num}">לשאלה ${QUESTIONS[0].num} ←</a></div>`;
+  app.querySelectorAll("[data-say]").forEach((b) => b.addEventListener("click", () => speak(b)));
   app.querySelectorAll("[data-toggle]").forEach((b) =>
     b.addEventListener("click", () => {
       const el = document.getElementById(b.dataset.toggle);
@@ -352,6 +440,7 @@ function viewQuestion(num) {
 }
 
 function route() {
+  stopSpeaking();
   const h = location.hash.replace(/^#\/?/, "");
   window.scrollTo(0, 0);
   if (h === "learn") return viewLearn();

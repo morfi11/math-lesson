@@ -140,3 +140,12 @@ button:disabled { opacity: .5; cursor: default; }
 .ctable { display: grid; gap: 6px; margin-top: 10px; }
 .crow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .clabel { min-width: 90px; font-weight: 500; }
+.say-row { display: flex; align-items: flex-start; gap: 8px; margin: 6px 0; }
+.say-row > div { flex: 1; min-width: 0; }
+button.say {
+  flex: none; width: 36px; height: 36px; padding: 0; border-radius: 50%;
+  font-size: 18px; line-height: 1; background: var(--primary-soft); border-color: transparent;
+}
+button.say:hover { background: #ddd8fb; }
+button.say.on { background: var(--primary); animation: pulse 1s infinite; }
+@keyframes pulse { 50% { transform: scale(1.12); } }
