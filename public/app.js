@@ -202,13 +202,51 @@ function speak(btn) {
   u.rate = 0.9;
   const v = hebrewVoice();
   if (v) u.voice = v;
-  else if (speechSynthesis.getVoices().length) {
-    btn.title = "לא נמצא קול בעברית במכשיר הזה";
-  }
+  else if (speechSynthesis.getVoices().length) return showNoVoiceHelp(); // a non-Hebrew voice would read gibberish
   u.onend = u.onerror = () => { if (speakingBtn === btn) stopSpeaking(); };
   speakingBtn = btn;
   btn.classList.add("on");
   speechSynthesis.speak(u);
+}
+
+// Which device is this, so the help names the right steps.
+function deviceKind() {
+  const ua = navigator.userAgent;
+  if (/Edg\//.test(ua)) return "edge";
+  if (/iPhone|iPad|Android/.test(ua)) return "phone";
+  if (/Windows/.test(ua)) return "windows";
+  if (/Mac OS X/.test(ua)) return "mac";
+  return "other";
+}
+
+function showNoVoiceHelp() {
+  const steps = {
+    windows:
+      "<b>הכי פשוט:</b> לפתוח את האתר בדפדפן <b>Microsoft Edge</b> – יש בו קולות עבריים מובנים.<br>" +
+      "<b>או</b> להוסיף קול עברי ל-Windows: הגדרות ← זמן ושפה ← דיבור ← <b>הוספת קולות</b> ← עברית. אחר כך לסגור ולפתוח מחדש את הדפדפן.",
+    mac:
+      "הגדרות המערכת ← נגישות ← תוכן מוקרא ← קול המערכת ← <b>ניהול קולות</b> ← עברית ← להוריד את <b>Carmit</b>. " +
+      "אחר כך לסגור ולפתוח מחדש את הדפדפן.",
+    phone:
+      "בטלפון: לוודא שבהגדרות ההקראה (טקסט לדיבור) מותקנת שפה עברית, ואז לרענן את הדף.",
+    edge: "ב-Edge אמורים להיות קולות עבריים – נסו לרענן את הדף.",
+    other: "אפשר לנסות לפתוח את האתר בדפדפן Microsoft Edge או בטלפון – שם בדרך כלל יש קול עברי.",
+  };
+  let box = document.getElementById("novoice");
+  if (!box) {
+    app.insertAdjacentHTML(
+      "afterbegin",
+      `<div class="card novoice" id="novoice">
+        <button class="close" aria-label="סגירה">✕</button>
+        <h3>🔇 אין קול בעברית במחשב הזה</h3>
+        <div>ההקראה משתמשת בקול שמותקן במחשב או בטלפון, ובמכשיר הזה אין קול עברי.</div>
+        <div style="margin-top:6px">${steps[deviceKind()]}</div>
+      </div>`
+    );
+    box = document.getElementById("novoice");
+    box.querySelector(".close").addEventListener("click", () => box.remove());
+  }
+  box.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 if (window.speechSynthesis) speechSynthesis.getVoices(); // some browsers load voices lazily
