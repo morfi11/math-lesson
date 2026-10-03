@@ -57,6 +57,15 @@ Railway or GitHub.
      saved answers attach to the wrong part. Add new parts at the end instead.
    - When lessons become multiple, prefix ids with the lesson id
      (`<lesson>:q<num>p<n>`) and widen the server's id check (`/^q\d+p\d+$/`).
+   **Bonus questions** (when asked for extra practice):
+   - Add them at the end of `QUESTIONS` with `bonus: n` and the next free `num`
+     (they show as "⭐ בונוס n", gold, in their own home-page section).
+   - Use the same question types as the book, but give the **minimum data**
+     and let her find everything else. For example: one vertex and two lengths,
+     one vertex and a perimeter, or two vertices and an area (working
+     backwards: $30 : 6 = 5$).
+   - Use fresh numbers and a different vertex position each time, e.g. top-left
+     instead of bottom-left, so she has to subtract as well as add.
 4. **Drawings everywhere they help.** Points labelled with coordinates, dashed
    guides to the axes, length markers labelled with the arithmetic (`7 − 2 = 5`).
    Question figures are drawn to scale. Use a grid only when the book has one,

@@ -168,3 +168,13 @@ button.linkish { background: none; border: none; color: var(--primary); padding:
 .badge.done { background: var(--primary-soft); color: var(--primary); }
 .sync { margin-inline-start: auto; font-size: 13px; color: var(--muted); white-space: nowrap; }
 .sync.offline { color: #b45309; }
+/* bonus questions */
+#qnav a.bonus { background: #fff3c4; color: #92600a; }
+#qnav a.bonus.active { background: #e3a008; color: #fff; }
+.qcard.bonus { border: 2px solid #f2cf63; background: linear-gradient(135deg, #fffaf0, #fff); }
+.qcard.bonus .n { color: #b7791f; }
+.card.bonus { border: 2px solid #f2cf63; }
+.bonus-tag {
+  background: #fff3c4; color: #92600a; border: 1px solid #f2cf63; border-radius: 999px;
+  padding: 0 12px; font-size: 15px; font-weight: 500;
+}

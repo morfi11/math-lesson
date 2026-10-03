@@ -128,25 +128,32 @@ function renderFigure(fig) {
 // ---------- views ----------
 const app = document.getElementById("app");
 
+// Bonus questions (q.bonus = 1, 2, 3) are numbered on after the book's, but shown as "בונוס n".
+const qName = (q) => (q.bonus ? `⭐ בונוס ${q.bonus}` : `שאלה ${q.num}`);
+const qShort = (q) => (q.bonus ? `★${q.bonus}` : `${q.num}`);
+
 function renderNav(active) {
   const links = [`<a href="#/learn" class="${active === "learn" ? "active" : ""}">📖 הסבר</a>`];
   for (const q of QUESTIONS)
-    links.push(`<a href="#/q/${q.num}" class="${active === q.num ? "active" : ""}">${q.num}</a>`);
+    links.push(`<a href="#/q/${q.num}" class="${active === q.num ? "active" : ""}${q.bonus ? " bonus" : ""}">${qShort(q)}</a>`);
   document.getElementById("qnav").innerHTML = links.join("");
 }
 
 function viewHome() {
   renderNav(null);
-  const cards = QUESTIONS.map((q) => {
+  const card = (q) => {
     const ready = q.parts.some((p) => p.hints);
     const firstLine = q.text.split("<br>")[0];
-    return `<a class="qcard" href="#/q/${q.num}">
-      <div class="n">שאלה ${q.num}</div>
+    const sc = questionScore(q);
+    return `<a class="qcard${q.bonus ? " bonus" : ""}" href="#/q/${q.num}">
+      <div class="n">${qName(q)}</div>
       <div class="t">${fmt(firstLine)}</div>
       <div>${ready ? '<span class="badge">💡 עם רמזים והסברים</span>' : '<span class="badge soon">רמזים – בקרוב</span>'}
-        ${(() => { const sc = questionScore(q); return sc.ok ? `<span class="badge done">✔ ${sc.ok}/${sc.total}</span>` : ""; })()}</div>
+        ${sc.ok ? `<span class="badge done">✔ ${sc.ok}/${sc.total}</span>` : ""}</div>
     </a>`;
-  }).join("");
+  };
+  const cards = QUESTIONS.filter((q) => !q.bonus).map(card).join("");
+  const bonus = QUESTIONS.filter((q) => q.bonus).map(card).join("");
   app.innerHTML = `
     <h1>${LESSON.title}</h1>
     <p class="sub">${LESSON.subtitle}</p>
@@ -155,7 +162,10 @@ function viewHome() {
       <div class="t">מה צריך לדעת: קטעים המקבילים לצירים, אורך, היקף ושטח – ושתי דוגמאות פתורות.</div>
     </a>
     <h2>שאלות</h2>
-    <div class="grid-cards">${cards}</div>`;
+    <div class="grid-cards">${cards}</div>
+    ${bonus ? `<h2>⭐ שאלות בונוס</h2>
+      <p class="sub" style="margin-top:-6px">אתגר! כאן נתונים רק מעט נתונים – ואת מוצאת את כל השאר.</p>
+      <div class="grid-cards">${bonus}</div>` : ""}`;
 }
 
 // ---------- read aloud (Web Speech API, Hebrew voice) ----------
@@ -494,7 +504,13 @@ async function syncProgress() {
     const changed = [];
     for (const [pid, st] of Object.entries(server.parts || {})) {
       const mine = progress.parts[pid];
-      if (!mine || (st.t || 0) > (mine.t || 0)) { progress.parts[pid] = st; changed.push(pid); }
+      if (!mine || (st.t || 0) > (mine.t || 0)) {
+        // update in place: the page's handlers hold this object, so replacing it would orphan their writes
+        const target = (progress.parts[pid] = mine || {});
+        Object.keys(target).forEach((k) => delete target[k]);
+        Object.assign(target, st);
+        changed.push(pid);
+      }
     }
     if (changed.length) { saveLocal(); refreshAfterSync(changed); }
     setSyncStatus("saved");
@@ -586,8 +602,8 @@ function viewQuestion(num) {
 
   const prev = QUESTIONS[idx - 1], next = QUESTIONS[idx + 1];
   app.innerHTML = `
-    <div class="qhead"><h1>שאלה ${q.num}</h1><span class="page">עמוד ${q.page}</span></div>
-    <div class="card">
+    <div class="qhead"><h1>${qName(q)}</h1>${q.bonus ? '<span class="bonus-tag">שאלת בונוס – אתגר!</span>' : `<span class="page">עמוד ${q.page}</span>`}</div>
+    <div class="card${q.bonus ? " bonus" : ""}">
       <div class="question">
         <div>${fmt(q.text)}</div>
         ${renderFigure(q.figure)}
@@ -596,8 +612,8 @@ function viewQuestion(num) {
     </div>
     <div class="reset-row"><button class="linkish" data-reset>🗑️ התחלה מחדש של השאלה הזו</button></div>
     <div class="pager">
-      ${prev ? `<a href="#/q/${prev.num}">→ שאלה ${prev.num}</a>` : `<a href="#/learn">→ הסבר</a>`}
-      ${next ? `<a href="#/q/${next.num}">שאלה ${next.num} ←</a>` : "<span></span>"}
+      ${prev ? `<a href="#/q/${prev.num}">→ ${qName(prev)}</a>` : `<a href="#/learn">→ הסבר</a>`}
+      ${next ? `<a href="#/q/${next.num}">${qName(next)} ←</a>` : "<span></span>"}
     </div>`;
 
   // wire up hints / solutions / checks, restoring anything saved

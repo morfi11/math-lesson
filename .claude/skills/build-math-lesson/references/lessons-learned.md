@@ -51,6 +51,15 @@
 - The sandbox can't open `*.up.railway.app`. Verify with `list-deployments` and
   `get-logs`, and say plainly that the live page wasn't opened.
 
+## Saved progress
+- Page handlers hold a reference to each part's state object. When a sync brings
+  in newer state, **update that object in place** (clear its keys and assign).
+  Replacing it orphans the handlers, so later clicks (e.g. "show solution") are
+  silently lost.
+- Tests that click toggles must start from an **empty server** (`rm -rf data`).
+  Otherwise a second run loads the first run's saved state, and its clicks
+  toggle things back off.
+
 ## Sandbox testing
 - Playwright: `chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })`.
   Never run `playwright install`.

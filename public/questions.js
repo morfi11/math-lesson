@@ -1081,4 +1081,297 @@ const QUESTIONS = [
       },
     ],
   },
+
+  // ---------- bonus questions: the minimum data, she finds everything else ----------
+  {
+    num: 23,
+    bonus: 1,
+    text:
+      "המלבן $ABCD$ צלעותיו מקבילות לצירים.<br>" +
+      "$A(2,1)$ הוא הקודקוד השמאלי-התחתון.<br>" +
+      "אורך הצלע האופקית $AB$ הוא $6$, ואורך הצלע האנכית $AD$ הוא $4$.",
+    figure: {
+      xMax: 10, yMax: 7, width: 340,
+      items: [
+        rect(2, 1, 8, 5),
+        { type: "dim", from: [2, 1], to: [8, 1], text: "6", off: 16 },
+        { type: "dim", from: [2, 1], to: [2, 5], text: "4", off: -14 },
+        { type: "point", x: 2, y: 1, label: "A(2,1)", pos: "nw" },
+        { type: "point", x: 8, y: 1, label: "B(__,__)", pos: "ne" },
+        { type: "point", x: 8, y: 5, label: "C(__,__)", pos: "ne" },
+        { type: "point", x: 2, y: 5, label: "D(__,__)", pos: "nw" },
+      ],
+    },
+    parts: [
+      {
+        label: "א",
+        text: "מצאו את שיעורי הקודקודים $B$, $C$ ו-$D$.",
+        check: {
+          kind: "fields",
+          fields: [
+            { label: "$B$: $x=$", answer: 8 },
+            { label: "$B$: $y=$", answer: 1 },
+            { label: "$C$: $x=$", answer: 8 },
+            { label: "$C$: $y=$", answer: 5 },
+            { label: "$D$: $x=$", answer: 2 },
+            { label: "$D$: $y=$", answer: 5 },
+          ],
+          right: "מצוין אופיר! 🌟 $B(8,1)$, $C(8,5)$, $D(2,5)$.",
+        },
+        hints: [
+          {
+            title: "רמז 1 – מתחילים מ-B",
+            body:
+              "$B$ נמצא **מימין** ל-$A$, על אותה צלע אופקית.<br>" +
+              "אז ל-$B$ יש **אותו $y$** כמו ל-$A$, וה-$x$ שלו **גדול ב-$6$** (אורך $AB$).",
+          },
+          {
+            title: "רמז 2 – עכשיו D",
+            body:
+              "$D$ נמצא **מעל** $A$, על אותה צלע אנכית.<br>" +
+              "אז ל-$D$ יש **אותו $x$** כמו ל-$A$, וה-$y$ שלו **גדול ב-$4$** (אורך $AD$).",
+            figure: {
+              xMax: 10, yMax: 7, grid: true, ticks: true, width: 300,
+              items: [
+                rect(2, 1, 8, 5, "soft"),
+                { type: "dim", from: [2, 1], to: [8, 1], text: "2+6=8", off: 16 },
+                { type: "dim", from: [2, 1], to: [2, 5], text: "1+4=5", off: -14 },
+                { type: "point", x: 2, y: 1, label: "A", pos: "sw" },
+                { type: "point", x: 8, y: 1, label: "B", pos: "se" },
+                { type: "point", x: 2, y: 5, label: "D", pos: "nw" },
+              ],
+            },
+          },
+          {
+            title: "רמז 3 – ולבסוף C",
+            body: "$C$ נמצא **מעל** $B$ (אותו $x$ כמו $B$) ו**מימין** ל-$D$ (אותו $y$ כמו $D$).",
+          },
+        ],
+        solution: {
+          steps: [
+            "$B$: מימין ל-$A$ ← $y=1$, ו-$x=2+6=8$ ← $B(8,1)$.",
+            "$D$: מעל $A$ ← $x=2$, ו-$y=1+4=5$ ← $D(2,5)$.",
+            "$C$: מעל $B$ ← $x=8$; מימין ל-$D$ ← $y=5$ ← $C(8,5)$.",
+          ],
+          figure: {
+            xMax: 10, yMax: 7, grid: true, ticks: true, width: 320,
+            items: [
+              { type: "guides", x: 8, y: 5 },
+              rect(2, 1, 8, 5, "soft"),
+              { type: "point", x: 2, y: 1, label: "A(2,1)", pos: "sw" },
+              { type: "point", x: 8, y: 1, label: "B(8,1)", pos: "se", color: "good" },
+              { type: "point", x: 8, y: 5, label: "C(8,5)", pos: "ne", color: "good" },
+              { type: "point", x: 2, y: 5, label: "D(2,5)", pos: "nw", color: "good" },
+            ],
+          },
+        },
+      },
+      {
+        label: "ב",
+        text: "חשבו את היקף המלבן.",
+        check: { kind: "fields", fields: [{ label: "היקף:", answer: 20 }], right: "נכון! 🎉 $6+4+6+4=20$" },
+        hints: [{ title: "רמז", body: "היקף = סכום 4 הצלעות. במלבן יש שתי צלעות באורך $6$ ושתיים באורך $4$." }],
+        solution: { steps: ["$6+4+6+4=20$ (או $2×6+2×4=20$)."] },
+      },
+      {
+        label: "ג",
+        text: "חשבו את שטח המלבן.",
+        check: { kind: "fields", fields: [{ label: "שטח:", answer: 24 }], right: "נכון! 🎉 $6×4=24$" },
+        hints: [{ title: "רמז", body: "שטח = אורך × רוחב = $6 × 4$" }],
+        solution: { steps: ["$6×4=24$ יחידות שטח."] },
+      },
+    ],
+  },
+
+  {
+    num: 24,
+    bonus: 2,
+    text:
+      "הריבוע $KLMN$ צלעותיו מקבילות לצירים.<br>" +
+      "$K(1,7)$ הוא הקודקוד השמאלי-העליון, ו-$L$ נמצא מימינו.<br>" +
+      "היקף הריבוע הוא $12$.",
+    figure: {
+      xMax: 6, yMax: 8, width: 300,
+      items: [
+        rect(1, 4, 4, 7),
+        { type: "point", x: 1, y: 7, label: "K(1,7)", pos: "nw" },
+        { type: "point", x: 4, y: 7, label: "L(__,__)", pos: "ne" },
+        { type: "point", x: 4, y: 4, label: "M(__,__)", pos: "se" },
+        { type: "point", x: 1, y: 4, label: "N(__,__)", pos: "sw" },
+      ],
+    },
+    parts: [
+      {
+        label: "א",
+        text: "מהו אורך צלע הריבוע?",
+        check: { kind: "fields", fields: [{ label: "אורך צלע:", answer: 3 }], right: "נכון! 🎉 $12:4=3$" },
+        hints: [
+          { title: "רמז 1", body: "כמה צלעות יש לריבוע? ומה מיוחד בהן?" },
+          { title: "רמז 2", body: "ההיקף הוא סכום **4 צלעות שוות**. אז צלע אחת = היקף $: 4$." },
+        ],
+        solution: { steps: ["בריבוע 4 צלעות שוות, והיקפו $12$.", "$12:4=3$ ← אורך הצלע $3$."] },
+      },
+      {
+        label: "ב",
+        text: "מצאו את שיעורי הקודקודים $L$, $M$ ו-$N$.",
+        check: {
+          kind: "fields",
+          fields: [
+            { label: "$L$: $x=$", answer: 4 },
+            { label: "$L$: $y=$", answer: 7 },
+            { label: "$M$: $x=$", answer: 4 },
+            { label: "$M$: $y=$", answer: 4 },
+            { label: "$N$: $x=$", answer: 1 },
+            { label: "$N$: $y=$", answer: 4 },
+          ],
+          right: "כל הכבוד! 🌟 $L(4,7)$, $M(4,4)$, $N(1,4)$.",
+        },
+        hints: [
+          {
+            title: "רמז 1 – L",
+            body: "$L$ **מימין** ל-$K$ ← אותו $y$. ה-$x$ שלו **גדול ב-$3$** (אורך הצלע).",
+          },
+          {
+            title: "רמז 2 – N",
+            body:
+              "$N$ **מתחת** ל-$K$ ← אותו $x$. ה-$y$ שלו **קטן ב-$3$**.<br>" +
+              "(זהירות: הולכים **למטה**, אז מחסרים!)",
+            figure: {
+              xMax: 6, yMax: 8, grid: true, ticks: true, width: 260,
+              items: [
+                rect(1, 4, 4, 7, "soft"),
+                { type: "dim", from: [1, 7], to: [4, 7], text: "1+3=4", off: -14 },
+                { type: "dim", from: [4, 4], to: [4, 7], text: "7−3=4", off: 14 },
+                { type: "point", x: 1, y: 7, label: "K", pos: "nw" },
+                { type: "point", x: 4, y: 7, label: "L", pos: "ne" },
+                { type: "point", x: 1, y: 4, label: "N", pos: "sw" },
+              ],
+            },
+          },
+          { title: "רמז 3 – M", body: "$M$ **מתחת** ל-$L$ (אותו $x$ כמו $L$) ו**מימין** ל-$N$ (אותו $y$ כמו $N$)." },
+        ],
+        solution: {
+          steps: [
+            "$L$: מימין ל-$K$ ← $y=7$, $x=1+3=4$ ← $L(4,7)$.",
+            "$N$: מתחת ל-$K$ ← $x=1$, $y=7-3=4$ ← $N(1,4)$.",
+            "$M$: מתחת ל-$L$ ← $x=4$; מימין ל-$N$ ← $y=4$ ← $M(4,4)$.",
+          ],
+          figure: {
+            xMax: 6, yMax: 8, grid: true, ticks: true, width: 280,
+            items: [
+              { type: "guides", x: 4, y: 4 },
+              rect(1, 4, 4, 7, "soft"),
+              { type: "point", x: 1, y: 7, label: "K(1,7)", pos: "nw" },
+              { type: "point", x: 4, y: 7, label: "L(4,7)", pos: "ne", color: "good" },
+              { type: "point", x: 4, y: 4, label: "M(4,4)", pos: "se", color: "good" },
+              { type: "point", x: 1, y: 4, label: "N(1,4)", pos: "sw", color: "good" },
+            ],
+          },
+        },
+      },
+      {
+        label: "ג",
+        text: "חשבו את שטח הריבוע.",
+        check: { kind: "fields", fields: [{ label: "שטח:", answer: 9 }], right: "נכון! 🎉 $3×3=9$" },
+        hints: [{ title: "רמז", body: "שטח ריבוע = צלע × צלע." }],
+        solution: { steps: ["$3×3=9$ יחידות שטח."] },
+      },
+    ],
+  },
+
+  {
+    num: 25,
+    bonus: 3,
+    text:
+      "המלבן $PQRS$ צלעותיו מקבילות לצירים.<br>" +
+      "$P(3,2)$ ו-$Q(9,2)$ הם שני הקודקודים התחתונים, ו-$R$, $S$ נמצאים מעליהם.<br>" +
+      "שטח המלבן הוא $30$.",
+    figure: {
+      xMax: 11, yMax: 9, width: 340,
+      items: [
+        rect(3, 2, 9, 7),
+        { type: "text", x: 6, y: 4.5, text: "30", color: "point" },
+        { type: "point", x: 3, y: 2, label: "P(3,2)", pos: "sw" },
+        { type: "point", x: 9, y: 2, label: "Q(9,2)", pos: "se" },
+        { type: "point", x: 9, y: 7, label: "R(__,__)", pos: "ne" },
+        { type: "point", x: 3, y: 7, label: "S(__,__)", pos: "nw" },
+      ],
+    },
+    parts: [
+      {
+        label: "א",
+        text: "מהו אורך הצלע $PQ$?",
+        check: { kind: "fields", fields: [{ label: "$PQ$:", answer: 6 }], right: "נכון! 🎉 $9-3=6$" },
+        hints: [{ title: "רמז", body: "$PQ$ אופקית (ל-$P$ ול-$Q$ אותו $y$). האורך = הפרש ה-$x$." }],
+        solution: { steps: ["$PQ=9-3=6$."] },
+      },
+      {
+        label: "ב",
+        text: "מהו אורך הצלע $QR$? (רמז קטן: השתמשו בשטח!)",
+        check: { kind: "fields", fields: [{ label: "$QR$:", answer: 5 }], right: "מעולה! 🌟 $30:6=5$ – חשבת הפוך מהשטח!" },
+        hints: [
+          {
+            title: "רמז 1 – חושבים הפוך",
+            body: "שטח = אורך × רוחב. אנחנו יודעים את השטח ($30$) ואת צלע אחת ($6$).<br>$6 × ? = 30$",
+          },
+          {
+            title: "רמז 2",
+            body: "איזה מספר כפול $6$ נותן $30$? אפשר לחלק: $30 : 6$.",
+            figure: {
+              xMax: 11, yMax: 9, grid: true, ticks: true, width: 300,
+              items: [
+                rect(3, 2, 9, 7, "soft"),
+                { type: "dim", from: [3, 2], to: [9, 2], text: "6", off: 16 },
+                { type: "dim", from: [9, 2], to: [9, 7], text: "?", off: 14 },
+                { type: "text", x: 6, y: 4.5, text: "6 × ? = 30" },
+              ],
+            },
+          },
+        ],
+        solution: { steps: ["$6 × QR = 30$.", "$QR = 30:6 = 5$."] },
+      },
+      {
+        label: "ג",
+        text: "מצאו את שיעורי הקודקודים $R$ ו-$S$.",
+        check: {
+          kind: "fields",
+          fields: [
+            { label: "$R$: $x=$", answer: 9 },
+            { label: "$R$: $y=$", answer: 7 },
+            { label: "$S$: $x=$", answer: 3 },
+            { label: "$S$: $y=$", answer: 7 },
+          ],
+          right: "כל הכבוד! 🎉 $R(9,7)$, $S(3,7)$.",
+        },
+        hints: [
+          { title: "רמז", body: "$R$ **מעל** $Q$ ← אותו $x$, וה-$y$ גדול ב-$5$ (אורך $QR$). $S$ **מעל** $P$ באותה דרך." },
+        ],
+        solution: {
+          steps: [
+            "$R$: מעל $Q$ ← $x=9$, $y=2+5=7$ ← $R(9,7)$.",
+            "$S$: מעל $P$ ← $x=3$, $y=2+5=7$ ← $S(3,7)$.",
+          ],
+          figure: {
+            xMax: 11, yMax: 9, grid: true, ticks: true, width: 320,
+            items: [
+              { type: "guides", x: 9, y: 7 },
+              rect(3, 2, 9, 7, "soft"),
+              { type: "dim", from: [9, 2], to: [9, 7], text: "2+5=7", off: 14 },
+              { type: "point", x: 3, y: 2, label: "P(3,2)", pos: "sw" },
+              { type: "point", x: 9, y: 2, label: "Q(9,2)", pos: "se" },
+              { type: "point", x: 9, y: 7, label: "R(9,7)", pos: "n", color: "good" },
+              { type: "point", x: 3, y: 7, label: "S(3,7)", pos: "nw", color: "good" },
+            ],
+          },
+        },
+      },
+      {
+        label: "ד",
+        text: "חשבו את היקף המלבן.",
+        check: { kind: "fields", fields: [{ label: "היקף:", answer: 22 }], right: "נכון! 🎉 $6+5+6+5=22$" },
+        hints: [{ title: "רמז", body: "שתי צלעות באורך $6$ ושתיים באורך $5$." }],
+        solution: { steps: ["$6+5+6+5=22$."] },
+      },
+    ],
+  },
 ];
