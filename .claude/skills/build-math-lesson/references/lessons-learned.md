@@ -60,7 +60,27 @@
   Otherwise a second run loads the first run's saved state, and its clicks
   toggle things back off.
 
+## Reading the textbook (FlippingBook on www.yakoel.com)
+- The host must be allowed in the environment's network settings.
+- **`curl` works, but Chromium can't load the site**: it rejects the sandbox
+  proxy's certificate (ERR_CERT_AUTHORITY_INVALID). Never turn off certificate
+  checks. Download the files with curl and render them locally with Chromium
+  over `file://`.
+- The book root is e.g. `https://www.yakoel.com/P/Class7/7A/HE/12-10-2026/2_Page/`.
+  For viewer page NNNN (4 digits):
+  - `files/assets/common/page-html5-substrates/pageNNNN_4.jpg` is the background
+    and pictures (sizes `_1` to `_4`; `_4` is the largest).
+  - `files/assets/common/page-vectorlayers/NNNN.svg` is the text, with its fonts
+    embedded.
+  - Stack the svg on top of the jpg in an HTML page and screenshot it.
+  - Some pages have no svg (404). Their text is already in the jpg.
+- Viewer page N shows printed page N−2.
+- To map chapters quickly, render only the top strip of each page (the running
+  header names the chapter) and look at 6 pages per screenshot.
+
 ## Sandbox testing
+- After editing app.js, run `node -e "new Function(require('fs').readFileSync('public/app.js','utf8'))"`.
+  A broken template string (e.g. a stray backtick) blanks the whole page.
 - Playwright: `chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })`.
   Never run `playwright install`.
 - Run the local server with Bash `run_in_background` (`PORT=3123 node server.js`).

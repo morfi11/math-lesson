@@ -1375,3 +1375,18 @@ const QUESTIONS = [
     ],
   },
 ];
+
+// The app is a list of chapters; later chapters add themselves (see angles.js).
+// Question numbers must stay unique across chapters - they key the saved progress.
+const CHAPTERS = [
+  {
+    id: "coords",
+    icon: "📈",
+    short: "מערכת צירים",
+    title: LESSON.title,
+    subtitle: LESSON.subtitle,
+    learnBlurb: "מה צריך לדעת: קטעים המקבילים לצירים, אורך, היקף ושטח – ושתי דוגמאות פתורות.",
+    learn: LEARN,
+    questions: QUESTIONS,
+  },
+];

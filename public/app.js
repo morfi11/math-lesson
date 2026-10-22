@@ -1,4 +1,4 @@
-// Single-page app: hash routes #/ (home), #/learn, #/q/<num>.
+// Single-page app of chapters: hash routes #/ (chapters), #/c/<id>, #/c/<id>/learn, #/q/<num>.
 
 // ---------- text formatting ----------
 function fmt(s) {
@@ -25,7 +25,8 @@ const LABEL_POS = {
 
 function renderFigure(fig) {
   const W = fig.width || 320;
-  const H = fig.height || Math.round(W * 0.85);
+  // notebook-paper figures are sized to fit the grid, so there's no empty band around them
+  const H = fig.height || (fig.paper ? Math.round(56 + fig.yMax * ((W - 60) / fig.xMax)) : Math.round(W * 0.85));
   const padL = 34, padR = 26, padT = 26, padB = 30;
   let sx = (W - padL - padR) / fig.xMax;
   let sy = (H - padT - padB) / fig.yMax;
@@ -35,10 +36,12 @@ function renderFigure(fig) {
   const out = [];
 
   if (fig.grid) {
+    // fig.paper: the book's squared notebook paper (light blue lines), used for angles
+    const gc = fig.paper ? "#9fd9ec" : "#dcdbea";
     for (let i = 0; i <= fig.xMax; i++)
-      out.push(`<line x1="${X(i)}" y1="${Y(0)}" x2="${X(i)}" y2="${Y(fig.yMax)}" stroke="#dcdbea" stroke-width="1"/>`);
+      out.push(`<line x1="${X(i)}" y1="${Y(0)}" x2="${X(i)}" y2="${Y(fig.yMax)}" stroke="${gc}" stroke-width="1"/>`);
     for (let j = 0; j <= fig.yMax; j++)
-      out.push(`<line x1="${X(0)}" y1="${Y(j)}" x2="${X(fig.xMax)}" y2="${Y(j)}" stroke="#dcdbea" stroke-width="1"/>`);
+      out.push(`<line x1="${X(0)}" y1="${Y(j)}" x2="${X(fig.xMax)}" y2="${Y(j)}" stroke="${gc}" stroke-width="1"/>`);
   }
   if (fig.ticks) {
     // tall grids get every other number, or the labels run into each other
@@ -49,8 +52,9 @@ function renderFigure(fig) {
       out.push(`<text x="${X(0) - 8}" y="${Y(j) + 4}" font-size="12" text-anchor="end" fill="#6b7086">${j}</text>`);
   }
 
-  // axes with arrow heads
+  // axes with arrow heads (fig.axes: false for plain drawings such as angles)
   const ax = X(fig.xMax) + 14, ay = Y(fig.yMax) - 14;
+  if (fig.axes !== false) {
   out.push(`<line x1="${X(0)}" y1="${Y(0)}" x2="${ax}" y2="${Y(0)}" stroke="#1f2335" stroke-width="1.6"/>`);
   out.push(`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(0)}" y2="${ay}" stroke="#1f2335" stroke-width="1.6"/>`);
   out.push(`<path d="M${ax},${Y(0)} l-8,-4 v8 z" fill="#1f2335"/>`);
@@ -58,6 +62,7 @@ function renderFigure(fig) {
   out.push(`<text x="${ax}" y="${Y(0) + 18}" font-size="15" font-style="italic" text-anchor="middle">x</text>`);
   out.push(`<text x="${X(0) - 12}" y="${ay + 4}" font-size="15" font-style="italic" text-anchor="middle">y</text>`);
   out.push(`<text x="${X(0) - 8}" y="${Y(0) + 16}" font-size="13" text-anchor="end">0</text>`);
+  }
 
   const labels = [];
   for (const it of fig.items || []) {
@@ -68,6 +73,24 @@ function renderFigure(fig) {
       if (it.label) {
         const [lx, ly] = it.labelAt;
         labels.push(`<text x="${X(lx)}" y="${Y(ly) + 5}" font-size="13" text-anchor="middle" fill="${stroke}" font-weight="500" direction="rtl">${it.label}</text>`);
+      }
+    } else if (it.type === "circle") {
+      out.push(`<circle cx="${X(it.x)}" cy="${Y(it.y)}" r="${it.r * sx}" fill="${it.fill || "#fff"}" stroke="${it.stroke || "#1f2335"}" stroke-width="${it.width || 2}"/>`);
+    } else if (it.type === "angle") {
+      // marks the angle at `at` swept counter-clockwise from the ray towards `a` to the ray towards `b`
+      const [vx, vy] = it.at;
+      const ta = Math.atan2(it.a[1] - vy, it.a[0] - vx), tb = Math.atan2(it.b[1] - vy, it.b[0] - vx);
+      let sweep = tb - ta;
+      while (sweep <= 0) sweep += 2 * Math.PI;
+      const r = it.r || 16, cx = X(vx), cy = Y(vy);
+      const pt = (t, rr) => [cx + rr * Math.cos(t), cy - rr * Math.sin(t)];
+      const c = COLORS[it.color] || "#e3a008";
+      if (Math.abs(sweep - Math.PI / 2) < 0.01 && it.mark !== "arc") {
+        const s2 = r * 0.7, [x1, y1] = pt(ta, s2), [x2, y2] = pt(tb, s2), [x3, y3] = pt(ta + Math.PI / 4, s2 * Math.SQRT2);
+        out.push(`<path d="M${x1},${y1} L${x3},${y3} L${x2},${y2}" fill="none" stroke="${c}" stroke-width="2"/>`);
+      } else {
+        const [x1, y1] = pt(ta, r), [x2, y2] = pt(tb, r), large = sweep > Math.PI ? 1 : 0;
+        out.push(`<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large} 0 ${x2},${y2} Z" fill="${it.fill || "rgba(227,160,8,0.25)"}" stroke="${c}" stroke-width="1.6"/>`);
       }
     } else if (it.type === "guides") {
       // dashed lines from a point down to the x-axis and across to the y-axis
@@ -99,8 +122,9 @@ function renderFigure(fig) {
       }
     } else if (it.type === "segment") {
       const [x1, y1] = it.from, [x2, y2] = it.to;
-      const stroke = it.strong ? "#5b4fd6" : "#1f2335";
-      out.push(`<line x1="${X(x1)}" y1="${Y(y1)}" x2="${X(x2)}" y2="${Y(y2)}" stroke="${stroke}" stroke-width="${it.strong ? 4 : 2}" stroke-linecap="round"/>`);
+      const stroke = COLORS[it.color] || (it.strong ? "#5b4fd6" : "#1f2335");
+      const dash = it.dashed ? ' stroke-dasharray="5 4"' : "";
+      out.push(`<line x1="${X(x1)}" y1="${Y(y1)}" x2="${X(x2)}" y2="${Y(y2)}" stroke="${stroke}" stroke-width="${it.strong ? 4 : it.dashed ? 1.6 : 2}" stroke-linecap="round"${dash}/>`);
     } else if (it.type === "text") {
       // free label, e.g. a side length; Hebrew-safe because `rtl` only applies when asked
       labels.push(
@@ -129,18 +153,49 @@ function renderFigure(fig) {
 const app = document.getElementById("app");
 
 // Bonus questions (q.bonus = 1, 2, 3) are numbered on after the book's, but shown as "בונוס n".
-const qName = (q) => (q.bonus ? `⭐ בונוס ${q.bonus}` : `שאלה ${q.num}`);
-const qShort = (q) => (q.bonus ? `★${q.bonus}` : `${q.num}`);
+// Question numbers are unique across chapters (they key saved progress); q.shown is the number she sees.
+const qName = (q) => (q.bonus ? `⭐ בונוס ${q.bonus}` : `שאלה ${q.shown ?? q.num}`);
+const qShort = (q) => (q.bonus ? `★${q.bonus}` : `${q.shown ?? q.num}`);
+const chapterOf = (num) => CHAPTERS.find((c) => c.questions.some((q) => q.num === num));
+const chapterById = (id) => CHAPTERS.find((c) => c.id === id);
 
-function renderNav(active) {
-  const links = [`<a href="#/learn" class="${active === "learn" ? "active" : ""}">📖 הסבר</a>`];
-  for (const q of QUESTIONS)
-    links.push(`<a href="#/q/${q.num}" class="${active === q.num ? "active" : ""}${q.bonus ? " bonus" : ""}">${qShort(q)}</a>`);
+function renderNav(ch, active) {
+  const links = [];
+  if (!ch) {
+    for (const c of CHAPTERS) links.push(`<a href="#/c/${c.id}">${c.icon} ${c.short}</a>`);
+  } else {
+    links.push(`<a href="#/" title="כל הפרקים">🏠</a>`);
+    links.push(`<a href="#/c/${ch.id}/learn" class="${active === "learn" ? "active" : ""}">📖 הסבר</a>`);
+    for (const q of ch.questions)
+      links.push(`<a href="#/q/${q.num}" class="${active === q.num ? "active" : ""}${q.bonus ? " bonus" : ""}">${qShort(q)}</a>`);
+  }
   document.getElementById("qnav").innerHTML = links.join("");
 }
 
-function viewHome() {
+function chapterScore(ch) {
+  return ch.questions.reduce((acc, q) => { const s = questionScore(q); acc.ok += s.ok; acc.total += s.total; return acc; }, { ok: 0, total: 0 });
+}
+
+// Top page: one card per chapter.
+function viewChapters() {
   renderNav(null);
+  const cards = CHAPTERS.map((c) => {
+    const sc = chapterScore(c);
+    return `<a class="qcard chapter" href="#/c/${c.id}">
+      <div class="n">${c.icon} ${c.title}</div>
+      <div class="t">${c.subtitle}</div>
+      <div><span class="badge">${c.questions.length} שאלות</span>
+        ${sc.ok ? `<span class="badge done">✔ ${sc.ok}/${sc.total}</span>` : ""}</div>
+    </a>`;
+  }).join("");
+  app.innerHTML = `
+    <h1>השיעורים של אופיר</h1>
+    <p class="sub">בחרי פרק</p>
+    <div class="grid-cards">${cards}</div>`;
+}
+
+function viewHome(ch) {
+  renderNav(ch, null);
   const card = (q) => {
     const ready = q.parts.some((p) => p.hints);
     const firstLine = q.text.split("<br>")[0];
@@ -152,14 +207,14 @@ function viewHome() {
         ${sc.ok ? `<span class="badge done">✔ ${sc.ok}/${sc.total}</span>` : ""}</div>
     </a>`;
   };
-  const cards = QUESTIONS.filter((q) => !q.bonus).map(card).join("");
-  const bonus = QUESTIONS.filter((q) => q.bonus).map(card).join("");
+  const cards = ch.questions.filter((q) => !q.bonus).map(card).join("");
+  const bonus = ch.questions.filter((q) => q.bonus).map(card).join("");
   app.innerHTML = `
-    <h1>${LESSON.title}</h1>
-    <p class="sub">${LESSON.subtitle}</p>
-    <a class="qcard" href="#/learn" style="margin-bottom:16px">
+    <h1>${ch.icon} ${ch.title}</h1>
+    <p class="sub">${ch.subtitle}</p>
+    <a class="qcard" href="#/c/${ch.id}/learn" style="margin-bottom:16px">
       <div class="n">📖 הסבר ודוגמאות</div>
-      <div class="t">מה צריך לדעת: קטעים המקבילים לצירים, אורך, היקף ושטח – ושתי דוגמאות פתורות.</div>
+      <div class="t">${ch.learnBlurb}</div>
     </a>
     <h2>שאלות</h2>
     <div class="grid-cards">${cards}</div>
@@ -179,6 +234,7 @@ function toSpeech(str) {
   const math = (m) =>
     " " +
     m
+      .replace(/\b(\d{1,2}):00\b/g, " $1 בדיוק ") // clock times, before ":" becomes "divided by"
       .replace(/\((-?[\d.½]+),(-?[\d.½]+)\)/g, " $1 פסיק $2 ")
       .replace(/\(__,__\)/g, " ")
       .replace(/(\d)½/g, "$1 וחצי")
@@ -311,8 +367,9 @@ function showNoVoiceHelp() {
 
 if (window.speechSynthesis) speechSynthesis.getVoices(); // some browsers load voices lazily
 
-function viewLearn() {
-  renderNav("learn");
+function viewLearn(ch) {
+  renderNav(ch, "learn");
+  const LEARN = ch.learn;
   SAY.length = 0;
   const row = (text, inner) => `<div class="say-row">${sayBtn(text)}<div>${inner}</div></div>`;
   const keys = LEARN.keyIdeas
@@ -342,13 +399,13 @@ function viewLearn() {
     .join("");
   app.innerHTML = `
     <h1>📖 הסבר ודוגמאות</h1>
-    <p class="sub">${LESSON.subtitle}</p>
+    <p class="sub">${ch.subtitle}</p>
     <h2>מה חשוב לזכור</h2>
     ${keys}
-    <h2>דוגמאות</h2>
-    ${row(LEARN.intro, `<p style="margin:0">${fmt(LEARN.intro)}</p>`)}
-    ${examples}
-    <div class="pager"><span></span><a href="#/q/${QUESTIONS[0].num}">לשאלה ${QUESTIONS[0].num} ←</a></div>`;
+    ${examples ? `<h2>דוגמאות</h2>
+    ${LEARN.intro ? row(LEARN.intro, `<p style="margin:0">${fmt(LEARN.intro)}</p>`) : ""}
+    ${examples}` : ""}
+    <div class="pager"><a href="#/c/${ch.id}">→ ${ch.short}</a><a href="#/q/${ch.questions[0].num}">ל${qName(ch.questions[0])} ←</a></div>`;
   app.querySelectorAll("[data-say]").forEach((b) => b.addEventListener("click", () => speak(b)));
   app.querySelectorAll("[data-toggle]").forEach((b) =>
     b.addEventListener("click", () => {
@@ -528,7 +585,7 @@ function refreshAfterSync(changed) {
   const m = h.match(/^q\/(\d+)$/);
   const typing = document.activeElement && document.activeElement.tagName === "INPUT";
   if (m && changed.some((pid) => pid.startsWith(`q${m[1]}p`)) && !typing) viewQuestion(Number(m[1]));
-  else if (!m && h !== "learn") viewHome();
+  else if (!m && !h.endsWith("learn")) render(); // home pages show progress badges
 }
 
 function setSyncStatus(st) {
@@ -570,10 +627,12 @@ function questionScore(q) {
 }
 
 function viewQuestion(num) {
+  const ch = chapterOf(num);
+  if (!ch) return viewChapters();
+  const QUESTIONS = ch.questions;
   const idx = QUESTIONS.findIndex((q) => q.num === num);
-  if (idx < 0) return viewHome();
   const q = QUESTIONS[idx];
-  renderNav(num);
+  renderNav(ch, num);
 
   const parts = q.parts
     .map((p, pi) => {
@@ -602,7 +661,7 @@ function viewQuestion(num) {
 
   const prev = QUESTIONS[idx - 1], next = QUESTIONS[idx + 1];
   app.innerHTML = `
-    <div class="qhead"><h1>${qName(q)}</h1>${q.bonus ? '<span class="bonus-tag">שאלת בונוס – אתגר!</span>' : `<span class="page">עמוד ${q.page}</span>`}</div>
+    <div class="qhead"><h1>${qName(q)}</h1>${q.bonus ? '<span class="bonus-tag">שאלת בונוס – אתגר!</span>' : q.page ? `<span class="page">עמוד ${q.page}</span>` : ""}</div>
     <div class="card${q.bonus ? " bonus" : ""}">
       <div class="question">
         <div>${fmt(q.text)}</div>
@@ -612,7 +671,7 @@ function viewQuestion(num) {
     </div>
     <div class="reset-row"><button class="linkish" data-reset>🗑️ התחלה מחדש של השאלה הזו</button></div>
     <div class="pager">
-      ${prev ? `<a href="#/q/${prev.num}">→ ${qName(prev)}</a>` : `<a href="#/learn">→ הסבר</a>`}
+      ${prev ? `<a href="#/q/${prev.num}">→ ${qName(prev)}</a>` : `<a href="#/c/${ch.id}/learn">→ הסבר</a>`}
       ${next ? `<a href="#/q/${next.num}">${qName(next)} ←</a>` : "<span></span>"}
     </div>`;
 
@@ -742,14 +801,21 @@ function wireHelp(p, pid, st) {
   });
 }
 
+// Routes: #/ chapters · #/c/<id> chapter home · #/c/<id>/learn · #/q/<num>
+// (old links #/learn and #/q/<num> from before chapters still work)
+function render() {
+  const h = location.hash.replace(/^#\/?/, "");
+  let m;
+  if (h === "learn") return viewLearn(CHAPTERS[0]);
+  if ((m = h.match(/^q\/(\d+)$/))) return viewQuestion(Number(m[1]));
+  if ((m = h.match(/^c\/([\w-]+)\/learn$/)) && chapterById(m[1])) return viewLearn(chapterById(m[1]));
+  if ((m = h.match(/^c\/([\w-]+)$/)) && chapterById(m[1])) return viewHome(chapterById(m[1]));
+  viewChapters();
+}
 function route() {
   stopSpeaking();
-  const h = location.hash.replace(/^#\/?/, "");
   window.scrollTo(0, 0);
-  if (h === "learn") return viewLearn();
-  const m = h.match(/^q\/(\d+)$/);
-  if (m) return viewQuestion(Number(m[1]));
-  viewHome();
+  render();
 }
 window.addEventListener("hashchange", route);
 route();

@@ -67,6 +67,12 @@ A part with no `hints` shows "רמזים והסברים יתווספו בהמש�
 ```
 
 Tall grids (more than 10 units) automatically label every other tick.
+`axes: false` drops the axes (for plain geometry drawings). `paper: true` draws the
+book's light-blue squared notebook paper and sizes the figure to fit the grid.
+Segments also take `dashed: true` and `color`. `clock(cx, cy, r, hour, label)` in
+`angles.js` returns the items for a clock face at a whole hour, with the angle
+between the hands marked.
+In Hebrew figures, number items **right to left** (① on the right), as the book does.
 Helper: `rect(x1, y1, x2, y2, fill)` makes an axis-parallel rectangle polygon.
 
 | item | fields | notes |
@@ -76,6 +82,8 @@ Helper: `rect(x1, y1, x2, y2, fill)` makes an axis-parallel rectangle polygon.
 | `polygon` | `pts, fill, label, labelAt` | `fill`: `none` / `soft` / `blue` / `orange`; `label` is Hebrew, drawn RTL |
 | `guides` | `x, y, toX, toY, color` | dashed lines from the point to the axes, to show where its coordinates come from |
 | `dim` | `from, to, text, off, color` | length marker beside a horizontal/vertical segment. `off` in px: horizontal −16 = above; vertical +16 = right |
+| `circle` | `x, y, r, stroke, fill, width` | `r` in world units |
+| `angle` | `at, a, b, r, mark, color, fill` | marks the angle at `at`, swept **counter-clockwise** from the ray towards `a` to the ray towards `b`. Get the order wrong and the arc goes round the outside. A 90° angle gets a right-angle square unless `mark: "arc"`. `r` in px |
 | `text` | `x, y, text, rtl, color` | free label. Hebrew needs `rtl: true`; never mix Hebrew and numbers in one item |
 
 Draw order: listed order, with all labels on top. Put `guides` first.

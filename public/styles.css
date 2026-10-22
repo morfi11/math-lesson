@@ -178,3 +178,4 @@ button.linkish { background: none; border: none; color: var(--primary); padding:
   background: #fff3c4; color: #92600a; border: 1px solid #f2cf63; border-radius: 999px;
   padding: 0 12px; font-size: 15px; font-weight: 500;
 }
+.qcard.chapter .n { font-size: 24px; }

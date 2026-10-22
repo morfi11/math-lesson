@@ -80,17 +80,47 @@ Railway or GitHub.
    `get-logs` for the `tts self-test` line. The sandbox can't open the live URL,
    so say what was verified and what wasn't.
 
-## Adding a new lesson / topic
+## Adding a new chapter
 
-The app currently holds one lesson: `LESSON`, `LEARN`, `QUESTIONS` in
-`public/questions.js`. The first time a second lesson is added:
+The app is a list of **chapters** (`CHAPTERS`). The start page is a chapter picker,
+and the routes are `#/c/<id>`, `#/c/<id>/learn` and `#/q/<num>`.
 
-- Move each lesson to `public/lessons/<id>.js`.
-- Add a lesson picker on the home page.
-- Route as `#/<lesson>/learn` and `#/<lesson>/q/<n>`.
+- **Chapter 1** (coordinate system) lives in `public/questions.js`, which also
+  creates `CHAPTERS`.
+- **Every later chapter** is its own file. For example, `public/angles.js` builds
+  its LEARN and QUESTIONS and ends with `CHAPTERS.push({ id, icon, short, title,
+  subtitle, learnBlurb, learn, questions })`. Add a `<script>` tag for it in
+  `index.html`, after `questions.js` and before `app.js`.
+- **Question numbers must be unique across the whole app**, because they key the
+  saved progress. Give each chapter its own block of hundreds (angles uses
+  101–103, so the next chapter starts at 201). Set `shown: 1, 2, 3…` for the
+  number she sees.
+- When the user asks for questions "based on the book", write **new** questions
+  of the same types as the book's, with explanations and hints built from the
+  book's own definitions and examples. Say which book questions each one is
+  modelled on.
 
-Keep everything else shared (renderer, checks, speech). Ask the user only if they
-want a separate app for some reason; by default it's one app.
+## Reading the textbook
+
+The user's textbook (Mishbetzet / Gabi Yekuel, "כיתה ז' – חלק א' – סדרת אולימפוס –
+תוכנית חדשה") is a FlippingBook on www.yakoel.com, and that host must be in the
+environment's allowed domains. See `references/lessons-learned.md` for how to
+download and render its pages.
+
+So far:
+- **Unit א:** chapters 16–19, variables and algebraic expressions (that unit's
+  summary ends on printed page 225).
+- **Unit ב, זוויות:**
+  - 20 זיהוי זוויות וסוגי זוויות (p. 227)
+  - 21 סימון זוויות בכתיב מתמטי (p. 233)
+  - 22 השוואה בין גדלים של זוויות (p. 239)
+  - 23 מדידה של זוויות (p. 244)
+  - 24 סכום והפרש זוויות (p. 252)
+  - 25 (not checked yet)
+  - 26 זוויות צמודות
+  - 27 זוויות קודקודיות (p. 282)
+
+The coordinate-system pages (29–30) came from a different Mishbetzet booklet.
 
 ## Hebrew math-text rules (summary — details in references)
 
