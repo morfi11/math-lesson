@@ -26,6 +26,9 @@
   options are Google Cloud TTS or Azure (paid, need a key on Railway).
 - **Gemini TTS doesn't list Hebrew** among its supported languages. Don't build on
   it without verifying first.
+- If the speech self-test starts failing with **403**, Microsoft has changed the
+  service's access check. Upgrade `msedge-tts` to its latest release. That fixed
+  it on 23 Oct 2026 (2.0.8 → 2.1.0).
 - `msedge-tts` puts the text **unescaped** into SSML, so the server must XML-escape it.
 - **It needs Node with global Web Crypto.** Railway ran Node 18 when `engines` said
   `>=18`, which failed with "crypto is not defined". Engines is pinned to `22.x`,
@@ -48,6 +51,10 @@
 - Progress lives in `progress.json` on the Railway **volume** mounted at `/data`.
   Without the volume, a redeploy wipes it. `/health` reports
   `progress.volume: true/false`, and the server logs its data dir at startup.
+- If Railway misses a push (e.g. during a Railway outage), reconnect the service's
+  source to the same repo and branch (`connect-service-source`). It builds the
+  latest commit immediately. Don't push a dummy commit. "Redeploy" rebuilds the
+  *old* commit.
 - The sandbox can't open `*.up.railway.app`. Verify with `list-deployments` and
   `get-logs`, and say plainly that the live page wasn't opened.
 
