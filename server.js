@@ -53,7 +53,8 @@ function speech(text, voice) {
   const key = voice + "|" + text;
   if (!cache.has(key)) {
     if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value);
-    const p = synthesize(text, voice);
+    // the free service hiccups now and then (odd 200/403 replies), so retry once before giving up
+    const p = synthesize(text, voice).catch(() => new Promise((r) => setTimeout(r, 700)).then(() => synthesize(text, voice)));
     p.catch(() => cache.delete(key)); // don't keep failures
     cache.set(key, p);
   }
@@ -87,7 +88,7 @@ async function handleTts(req, res) {
 }
 
 let ttsStatus = { ok: null };
-async function ttsSelfTest() {
+async function ttsSelfTest(retry = true) {
   const t0 = Date.now();
   try {
     const buf = await speech("שלום אופיר", VOICES.hila);
@@ -96,6 +97,8 @@ async function ttsSelfTest() {
     ttsStatus = { ok: false, error: String(e && e.message) };
   }
   console.log("tts self-test:", JSON.stringify(ttsStatus));
+  // one failed check at startup may be a passing hiccup: look again in 30s, so the log shows if it lasts
+  if (!ttsStatus.ok && retry) setTimeout(() => ttsSelfTest(false), 30000);
 }
 
 // ---------- saved progress, shared by all devices ----------
