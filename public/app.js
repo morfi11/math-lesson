@@ -235,6 +235,8 @@ function toSpeech(str) {
     " " +
     m
       .replace(/\b(\d{1,2}):00\b/g, " $1 בדיוק ") // clock times, before ":" becomes "divided by"
+      .replace(/∡/g, " זווית ")
+      .replace(/α/g, " אלפא ").replace(/β/g, " בטא ").replace(/γ/g, " גמא ").replace(/δ/g, " דלתא ")
       .replace(/\((-?[\d.½]+),(-?[\d.½]+)\)/g, " $1 פסיק $2 ")
       .replace(/\(__,__\)/g, " ")
       .replace(/(\d)½/g, "$1 וחצי")

@@ -2,6 +2,8 @@
 // Based on book "כיתה ז' - חלק א' - סדרת אולימפוס", unit ב, chapter 20 (pp. 227-232):
 // definitions and examples from the book; the three questions are new ones modelled
 // on its questions 2+12 (types on graph paper), 5 (clocks) and 15-16 (angles on axes).
+// Chapter 21 (pp. 233-238, notation): questions 4-6 modelled on its naming task + 6/8,
+// 5 (points on axes, name + type) and 12/13/15 (Greek letters).
 
 // A clock face with hands at a whole hour, as figure items. The smaller angle between
 // the hands is marked (a square for a right angle).
@@ -138,8 +140,59 @@ const ANGLES_LEARN = {
         ],
       },
     },
+    // ---- chapter 21: writing angles in math notation (book pp. 233-238) ----
+    {
+      title: "פרק 21: הסימון המתמטי לזווית הוא $∡$",
+      body:
+        "יש שלוש דרכים לכתוב זווית בכתיב מתמטי:<br>" +
+        "באמצעות **אות הקודקוד**, באמצעות **שלוש אותיות**, ובאמצעות **אותיות יווניות**.",
+    },
+    {
+      title: "כתיבה באמצעות אות הקודקוד",
+      body:
+        "לכל זווית יש קודקוד, והוא מסומן באות גדולה מהשפה האנגלית.<br>" +
+        "הזווית נקראת לפי שם הקודקוד שלה. למשל, הזווית בסרטוט תיכתב כך: $∡G$.",
+      figure: {
+        xMax: 8, yMax: 4, axes: false, width: 300, height: 140,
+        items: [
+          { type: "angle", at: [2, 1], a: [7, 1], b: [5, 3.6], r: 22 },
+          { type: "segment", from: [2, 1], to: [7, 1] },
+          { type: "segment", from: [2, 1], to: [5, 3.6] },
+          { type: "point", x: 2, y: 1, label: "G", pos: "sw" },
+          { type: "text", x: 6.6, y: 2.6, text: "∡G" },
+        ],
+      },
+    },
+    {
+      title: "כתיבה באמצעות שלוש אותיות",
+      body:
+        "כאשר נקודה היא קודקוד של **כמה** זוויות, אי אפשר לכתוב את שמן באמצעות אות הקודקוד בלבד.<br>" +
+        "אז כותבים **שלוש אותיות**: האות האמצעית היא **תמיד** הקודקוד, ושתי האחרות הן נקודות על שתי השוקיים.<br>" +
+        "את הזווית המסומנת בסרטוט כותבים $∡BAC$ או $∡CAB$ – שני השמות נכונים.<br>" +
+        "אבל $∡A$ לא מספיק: מ-$A$ יוצאות גם $∡BAD$ וגם $∡CAD$.",
+      figure: {
+        xMax: 9, yMax: 6, axes: false, width: 300, height: 210,
+        items: [
+          { type: "angle", at: [1, 3], a: [8, 0.8], b: [8, 5.2], r: 26 },
+          { type: "segment", from: [1, 3], to: [8.5, 5.4] },
+          { type: "segment", from: [1, 3], to: [8.5, 3] },
+          { type: "segment", from: [1, 3], to: [8.5, 0.6] },
+          { type: "point", x: 1, y: 3, label: "A", pos: "w", color: "bad" },
+          { type: "point", x: 6, y: 4.6, label: "B", pos: "n" },
+          { type: "point", x: 7, y: 3, label: "D", pos: "n" },
+          { type: "point", x: 6, y: 1.4, label: "C", pos: "s" },
+        ],
+      },
+    },
+    {
+      title: "כתיבה באמצעות אותיות יווניות",
+      body:
+        "אפשר לסמן זווית גם באות יוונית. כשמסמנים זווית באות יוונית, **אין צורך** להקדים לפניה את $∡$.<br>" +
+        "ארבע האותיות היווניות הראשונות: $α$ אַלְפָא, $β$ בֵּטָא, $γ$ גָּמָא, $δ$ דֶּלְתָּא.<br>" +
+        "(השמות דומים לאותיות העבריות: אלף, בית, גימל, דלת.)",
+    },
   ],
-  intro: "שתי דוגמאות מהספר – זוויות סביבנו, ובדף המשבצות.",
+  intro: "דוגמאות מהספר – זוויות סביבנו, בדף המשבצות, ושמות של זוויות.",
   examples: [
     {
       num: 1,
@@ -190,6 +243,30 @@ const ANGLES_LEARN = {
           { type: "text", x: 6.5, y: 4, text: "קהה", rtl: true, color: "good" },
         ],
       },
+    },
+    {
+      num: 3,
+      text:
+        "בסרטוט משולש $ABC$, והנקודה $D$ על הצלע $AB$. הזווית המסומנת היא $α$.<br>" +
+        "כתבי את כל השמות של הזווית $α$ באמצעות שלוש אותיות. האם אפשר לקרוא לה $∡C$?",
+      figure: {
+        xMax: 9, yMax: 6, axes: false, width: 300, height: 210,
+        items: [
+          { type: "polygon", pts: [[1, 1], [8.5, 1], [4, 5.5]], fill: "none" },
+          { type: "segment", from: [1, 1], to: [6.25, 3.25] },
+          { type: "angle", at: [1, 1], a: [8.5, 1], b: [6.25, 3.25], r: 30 },
+          { type: "text", x: 3.4, y: 1.45, text: "α" },
+          { type: "point", x: 1, y: 1, label: "C", pos: "sw" },
+          { type: "point", x: 8.5, y: 1, label: "B", pos: "se" },
+          { type: "point", x: 4, y: 5.5, label: "A", pos: "n" },
+          { type: "point", x: 6.25, y: 3.25, label: "D", pos: "ne" },
+        ],
+      },
+      solution: [
+        "הקודקוד של $α$ הוא $C$, ולכן $C$ היא האות **האמצעית**.",
+        "השוקיים של $α$ עוברות דרך $B$ ודרך $D$. לכן: $∡BCD = ∡DCB = α$ (כמו בספר).",
+        "**אי אפשר** לכתוב $∡C$: מ-$C$ יוצאות עוד זוויות, למשל $∡ACD$ ו-$∡ACB$, ולא היה ברור לאיזו מהן התכוונו.",
+      ],
     },
   ],
 };
@@ -544,6 +621,318 @@ const ANGLES_QUESTIONS = [
       },
     ],
   },
+
+  // ---- chapter 21: writing angles in math notation ----
+  {
+    num: 104,
+    shown: 4,
+    text:
+      "בסרטוט משולש $ABC$. הנקודה $D$ נמצאת על הצלע $BC$, והקטע $AD$ מחבר אותה עם $A$.<br>" +
+      "בסרטוט מסומנת זווית אחת.",
+    figure: {
+      xMax: 10, yMax: 6, axes: false, width: 320, height: 210,
+      items: [
+        { type: "polygon", pts: [[0.5, 1], [9.5, 1], [4, 5.4]], fill: "none" },
+        { type: "segment", from: [4, 5.4], to: [5.5, 1] },
+        { type: "angle", at: [5.5, 1], a: [9.5, 1], b: [4, 5.4], r: 22 },
+        { type: "point", x: 4, y: 5.4, label: "A", pos: "n" },
+        { type: "point", x: 0.5, y: 1, label: "B", pos: "sw" },
+        { type: "point", x: 9.5, y: 1, label: "C", pos: "se" },
+        { type: "point", x: 5.5, y: 1, label: "D", pos: "s" },
+      ],
+    },
+    parts: [
+      {
+        label: "א",
+        text: "בחרי את **כל** השמות המתאימים לזווית המסומנת.",
+        check: {
+          kind: "multi",
+          options: [
+            { text: "$∡ADC$", correct: true },
+            { text: "$∡D$", correct: false },
+            { text: "$∡CDA$", correct: true },
+            { text: "$∡DAC$", correct: false },
+            { text: "$∡ADB$", correct: false },
+            { text: "$∡ACD$", correct: false },
+          ],
+          right: "כל הכבוד אופיר! 🌟 $∡ADC$ ו-$∡CDA$ – הקודקוד $D$ באמצע, ו-$A$, $C$ על השוקיים.",
+          wrong: "עוד לא. בדקי בכל שם: האם האות **האמצעית** היא הקודקוד, והאם שתי האחרות על שוקי הזווית המסומנת?",
+        },
+        hints: [
+          {
+            title: "רמז 1 – מי הקודקוד?",
+            body: "הקשת המסומנת יוצאת מהנקודה $D$ – היא הקודקוד. בשם של שלוש אותיות, $D$ צריכה להיות **באמצע**.",
+          },
+          {
+            title: "רמז 2 – לאן הולכות השוקיים?",
+            body:
+              "שוק אחת הולכת מ-$D$ אל $A$, והשנייה מ-$D$ אל $C$.<br>" +
+              "אז השם הוא $A$–$D$–$C$, ואפשר לקרוא אותו גם מהצד השני: $C$–$D$–$A$.",
+            figure: {
+              xMax: 10, yMax: 6, axes: false, width: 300, height: 200,
+              items: [
+                { type: "polygon", pts: [[0.5, 1], [9.5, 1], [4, 5.4]], fill: "none" },
+                { type: "segment", from: [5.5, 1], to: [4, 5.4], color: "bad" },
+                { type: "segment", from: [5.5, 1], to: [9.5, 1], color: "bad" },
+                { type: "angle", at: [5.5, 1], a: [9.5, 1], b: [4, 5.4], r: 22 },
+                { type: "point", x: 4, y: 5.4, label: "A", pos: "n", color: "bad" },
+                { type: "point", x: 0.5, y: 1, label: "B", pos: "sw" },
+                { type: "point", x: 9.5, y: 1, label: "C", pos: "se", color: "bad" },
+                { type: "point", x: 5.5, y: 1, label: "D", pos: "s", color: "bad" },
+              ],
+            },
+          },
+          {
+            title: "רמז 3 – ומה עם $∡D$?",
+            body: "מהנקודה $D$ יוצאות **שתי** זוויות: $∡ADC$ וגם $∡ADB$. אם נכתוב רק $∡D$ – לא יהיה ברור לאיזו מהן התכוונו.",
+          },
+        ],
+        solution: {
+          steps: [
+            "$∡ADC$ ✓ ו-$∡CDA$ ✓ – הקודקוד $D$ באמצע, ו-$A$, $C$ על השוקיים.",
+            "$∡D$ ✗ – מ-$D$ יוצאות שתי זוויות ($∡ADC$ ו-$∡ADB$), אז אות אחת לא מספיקה.",
+            "$∡DAC$ ✗ ו-$∡ACD$ ✗ – האות האמצעית היא $A$ או $C$, כלומר אלה זוויות **אחרות** (שהקודקוד שלהן $A$ או $C$).",
+            "$∡ADB$ ✗ – זו הזווית **השנייה** ב-$D$, זו שמשמאל לקטע $AD$.",
+          ],
+        },
+      },
+      {
+        label: "ב",
+        text: "באיזו מהזוויות הבאות מותר לכתוב את השם באמצעות **אות אחת** בלבד?",
+        check: {
+          kind: "single",
+          options: [
+            { text: "הזווית שקודקודה $A$", correct: false },
+            { text: "הזווית שקודקודה $B$", correct: true },
+            { text: "הזווית שקודקודה $D$", correct: false },
+          ],
+          right: "נכון! 🎉 מ-$B$ יוצאת זווית אחת בלבד ($∡ABC$), ולכן מותר לכתוב $∡B$.",
+          wrong: "לא בדיוק. ספרי כמה זוויות יוצאות מכל נקודה. אות אחת מספיקה רק כשיש **זווית אחת** בקודקוד.",
+        },
+        hints: [
+          {
+            title: "רמז",
+            body:
+              "כמה קטעים יוצאים מכל נקודה?<br>" +
+              "מ-$A$ יוצאים 3 קטעים ($AB$, $AD$, $AC$) – יש שם כמה זוויות. ומ-$B$?",
+          },
+        ],
+        solution: {
+          steps: [
+            "מ-$A$ יוצאים שלושה קטעים, ויש שם שלוש זוויות ($∡BAD$, $∡DAC$, $∡BAC$) – צריך שלוש אותיות.",
+            "מ-$D$ יוצאות שתי זוויות ($∡ADB$, $∡ADC$) – צריך שלוש אותיות.",
+            "מ-$B$ יוצאים רק שני קטעים ($BA$ ו-$BC$), יש שם זווית אחת – מותר לכתוב **$∡B$**.",
+          ],
+        },
+      },
+    ],
+  },
+
+  {
+    num: 105,
+    shown: 5,
+    text:
+      "במערכת הצירים מסומנות הנקודות $A(1,2)$, $B(6,2)$, $C(6,6)$, $D(3,6)$, $E(9,2)$.<br>" +
+      "הנקודות מחוברות כמו בסרטוט.",
+    figure: {
+      xMax: 10, yMax: 7, grid: true, ticks: true, width: 340,
+      items: [
+        { type: "polygon", pts: [[1, 2], [6, 2], [6, 6], [3, 6]], fill: "none" },
+        { type: "segment", from: [6, 2], to: [9, 2] },
+        { type: "point", x: 1, y: 2, label: "A", pos: "sw" },
+        { type: "point", x: 6, y: 2, label: "B", pos: "s" },
+        { type: "point", x: 6, y: 6, label: "C", pos: "ne" },
+        { type: "point", x: 3, y: 6, label: "D", pos: "nw" },
+        { type: "point", x: 9, y: 2, label: "E", pos: "se" },
+      ],
+    },
+    parts: [
+      {
+        label: "א",
+        text: "קבעי את סוג כל זווית: חדה / ישרה / קהה / שטוחה.",
+        check: {
+          kind: "table",
+          choices: TYPES,
+          rows: [
+            { label: "$∡BAD$", answer: 0 },
+            { label: "$∡BCD$", answer: 1 },
+            { label: "$∡ADC$", answer: 2 },
+            { label: "$∡ABE$", answer: 3 },
+          ],
+          right: "מצוין! 🌟 $∡BAD$ חדה, $∡BCD$ ישרה, $∡ADC$ קהה, $∡ABE$ שטוחה.",
+        },
+        hints: [
+          {
+            title: "רמז 1 – איך קוראים שם של שלוש אותיות",
+            body:
+              "האות **האמצעית** היא הקודקוד. למשל ב-$∡BAD$ הקודקוד הוא $A$, והשוקיים הולכות מ-$A$ אל $B$ ומ-$A$ אל $D$.<br>" +
+              "מצאי כל זווית בסרטוט לפי שלוש האותיות שלה.",
+            figure: {
+              xMax: 10, yMax: 7, grid: true, ticks: true, width: 300,
+              items: [
+                { type: "polygon", pts: [[1, 2], [6, 2], [6, 6], [3, 6]], fill: "none" },
+                { type: "segment", from: [6, 2], to: [9, 2] },
+                { type: "angle", at: [1, 2], a: [6, 2], b: [3, 6], r: 20 },
+                { type: "segment", from: [1, 2], to: [6, 2], color: "bad" },
+                { type: "segment", from: [1, 2], to: [3, 6], color: "bad" },
+                { type: "point", x: 1, y: 2, label: "A", pos: "sw", color: "bad" },
+                { type: "point", x: 6, y: 2, label: "B", pos: "s" },
+                { type: "point", x: 3, y: 6, label: "D", pos: "nw" },
+                { type: "text", x: 3, y: 2.6, text: "∡BAD", color: "bad" },
+              ],
+            },
+          },
+          {
+            title: "רמז 2 – הכלים מפרק 20",
+            body:
+              "**שטוחה**: שלוש הנקודות על אותו קו ישר. **ישרה**: שוק אופקית ושוק אנכית – כמו פינה של משבצת.<br>" +
+              "ל**חדה** או **קהה**: מותחים קו אנכי מקווקו מהקודקוד ובודקים אם השוק השנייה לפניו או מעבר לו.",
+          },
+        ],
+        solution: {
+          steps: [
+            "$∡BAD$ – קודקוד $A$: שוק ימינה אל $B$, ושוק אל $D(3,6)$ שנמצאת **לפני** הקו האנכי של $A$: **חדה**.",
+            "$∡BCD$ – קודקוד $C$: שוק למטה אל $B$ (אנכית) ושוק שמאלה אל $D$ (אופקית): **ישרה**.",
+            "$∡ADC$ – קודקוד $D$: שוק ימינה אל $C$, והשוק אל $A(1,2)$ יורדת **מעבר** לקו האנכי שיורד מ-$D$: **קהה**.",
+            "$∡ABE$ – קודקוד $B$: $A$, $B$, $E$ כולן על הקו $y=2$: **שטוחה**.",
+          ],
+          figure: {
+            xMax: 10, yMax: 7, grid: true, ticks: true, width: 320,
+            items: [
+              { type: "segment", from: [3, 6], to: [3, 1], dashed: true, color: "good" },
+              { type: "polygon", pts: [[1, 2], [6, 2], [6, 6], [3, 6]], fill: "none" },
+              { type: "segment", from: [6, 2], to: [9, 2] },
+              { type: "angle", at: [1, 2], a: [6, 2], b: [3, 6], r: 18 },
+              { type: "angle", at: [6, 6], a: [3, 6], b: [6, 2], r: 18, color: "edge" },
+              { type: "angle", at: [3, 6], a: [1, 2], b: [6, 6], r: 18 },
+              { type: "angle", at: [6, 2], a: [9, 2], b: [1, 2], r: 14 },
+              { type: "point", x: 1, y: 2, label: "A", pos: "sw" },
+              { type: "point", x: 6, y: 2, label: "B", pos: "s" },
+              { type: "point", x: 6, y: 6, label: "C", pos: "ne" },
+              { type: "point", x: 3, y: 6, label: "D", pos: "nw" },
+              { type: "point", x: 9, y: 2, label: "E", pos: "se" },
+            ],
+          },
+        },
+      },
+      {
+        label: "ב",
+        text: "מהו שם נוסף לזווית $∡ADC$?",
+        check: {
+          kind: "single",
+          options: [
+            { text: "$∡DAC$", correct: false },
+            { text: "$∡CDA$", correct: true },
+            { text: "$∡ACD$", correct: false },
+            { text: "$∡DCA$", correct: false },
+          ],
+          right: "נכון! 🎉 קוראים את אותן אותיות מהצד השני – הקודקוד $D$ נשאר באמצע.",
+          wrong: "לא בדיוק. בשם הנוסף הקודקוד חייב להישאר **באמצע**.",
+        },
+        hints: [{ title: "רמז", body: "אפשר לקרוא את שלוש האותיות מהסוף להתחלה – אבל האות האמצעית (הקודקוד) לא זזה." }],
+        solution: { steps: ["$∡ADC = ∡CDA$ – אותן שלוש אותיות בסדר הפוך, והקודקוד $D$ באמצע."] },
+      },
+    ],
+  },
+
+  {
+    num: 106,
+    shown: 6,
+    text:
+      "בסרטוט משולש $KLM$. הנקודה $N$ נמצאת על הצלע $LM$, והקטע $KN$ מחבר אותה עם $K$.<br>" +
+      "ארבע זוויות מסומנות באותיות יווניות.",
+    figure: {
+      xMax: 10.5, yMax: 6.5, axes: false, width: 340, height: 230,
+      items: [
+        { type: "polygon", pts: [[0.5, 1], [10, 1], [4, 6]], fill: "none" },
+        { type: "segment", from: [4, 6], to: [6, 1] },
+        { type: "angle", at: [0.5, 1], a: [10, 1], b: [4, 6], r: 26 },
+        { type: "angle", at: [4, 6], a: [0.5, 1], b: [6, 1], r: 26 },
+        { type: "angle", at: [6, 1], a: [10, 1], b: [4, 6], r: 22 },
+        { type: "angle", at: [10, 1], a: [4, 6], b: [0.5, 1], r: 30 },
+        { type: "text", x: 1.9, y: 1.5, text: "α" },
+        { type: "text", x: 4.2, y: 4.7, text: "β" },
+        { type: "text", x: 6.8, y: 1.6, text: "γ" },
+        { type: "text", x: 8.3, y: 1.4, text: "δ" },
+        { type: "point", x: 4, y: 6, label: "K", pos: "n" },
+        { type: "point", x: 0.5, y: 1, label: "L", pos: "sw" },
+        { type: "point", x: 10, y: 1, label: "M", pos: "se" },
+        { type: "point", x: 6, y: 1, label: "N", pos: "s" },
+      ],
+    },
+    parts: [
+      {
+        label: "א",
+        text: "לכל אות יוונית, בחרי את שם הזווית שהיא מסמנת.",
+        check: {
+          kind: "table",
+          choices: ["$∡KLN$", "$∡LKN$", "$∡KNM$", "$∡KMN$"],
+          rows: [
+            { label: "$α$", answer: 0 },
+            { label: "$β$", answer: 1 },
+            { label: "$γ$", answer: 2 },
+            { label: "$δ$", answer: 3 },
+          ],
+          right: "כל הכבוד! 🌟 $α=∡KLN$, $β=∡LKN$, $γ=∡KNM$, $δ=∡KMN$.",
+        },
+        hints: [
+          {
+            title: "רמז 1 – מתחילים מהקודקוד",
+            body:
+              "לכל אות יוונית, מצאי מאיזו נקודה יוצאת הקשת שלה – זה הקודקוד, והוא **האות האמצעית** בשם.<br>" +
+              "למשל $α$ יוצאת מ-$L$, אז השם שלה הוא $?L?$.",
+          },
+          {
+            title: "רמז 2 – $β$ ו-$γ$",
+            body:
+              "$β$ יוצאת מ-$K$, והשוקיים שלה הולכות אל $L$ ואל $N$.<br>" +
+              "$γ$ יוצאת מ-$N$, והשוקיים שלה הולכות אל $K$ ואל $M$.",
+          },
+        ],
+        solution: {
+          steps: [
+            "$α$ – קודקוד $L$, שוקיים אל $K$ ואל $N$: $α = ∡KLN$.",
+            "$β$ – קודקוד $K$, שוקיים אל $L$ ואל $N$: $β = ∡LKN$.",
+            "$γ$ – קודקוד $N$, שוקיים אל $K$ ואל $M$: $γ = ∡KNM$.",
+            "$δ$ – קודקוד $M$, שוקיים אל $K$ ואל $N$: $δ = ∡KMN$.",
+          ],
+        },
+      },
+      {
+        label: "ב",
+        text: "איזו מהטענות הבאות **איננה** נכונה?",
+        check: {
+          kind: "single",
+          options: [
+            { text: "$α = ∡KLM$", correct: false },
+            { text: "$β = ∡K$", correct: true },
+            { text: "$γ = ∡MNK$", correct: false },
+            { text: "$δ = ∡M$", correct: false },
+          ],
+          right: "נכון! 👏 מ-$K$ יוצאות כמה זוויות ($∡LKN$, $∡NKM$, $∡LKM$), ולכן אי אפשר לכתוב $β = ∡K$.",
+          wrong: "לא בדיוק. בדקי בכל טענה: האם השם מתאר **רק** את הזווית המסומנת? כמה זוויות יש בכל קודקוד?",
+        },
+        hints: [
+          {
+            title: "רמז 1",
+            body: "$N$ נמצאת על $LM$, ולכן הקרן מ-$L$ אל $N$ והקרן מ-$L$ אל $M$ הן **אותה קרן**. האם $∡KLM$ ו-$∡KLN$ הן אותה זווית?",
+          },
+          {
+            title: "רמז 2",
+            body: "שם של אות אחת מותר רק כשבקודקוד יש **זווית אחת**. ספרי כמה זוויות יש ב-$K$ וכמה ב-$M$.",
+          },
+        ],
+        solution: {
+          steps: [
+            "$α = ∡KLM$ – נכון: $N$ על הקרן מ-$L$ אל $M$, אז $∡KLM$ ו-$∡KLN$ הן אותה זווית.",
+            "$γ = ∡MNK$ – נכון: אותן אותיות של $∡KNM$ בסדר הפוך, והקודקוד $N$ באמצע.",
+            "$δ = ∡M$ – נכון: ב-$M$ יש זווית אחת בלבד.",
+            "$β = ∡K$ – **לא נכון**: ב-$K$ יש שלוש זוויות ($∡LKN$, $∡NKM$, $∡LKM$), ו-$∡K$ לא אומר לאיזו מהן התכוונו.",
+          ],
+        },
+      },
+    ],
+  },
 ];
 
 CHAPTERS.push({
@@ -551,8 +940,8 @@ CHAPTERS.push({
   icon: "📐",
   short: "זוויות",
   title: "זוויות",
-  subtitle: "פרק 20: זיהוי זוויות, וסוגי זוויות",
-  learnBlurb: "קרן, זווית, קודקוד ושוקיים; זווית ישרה, חדה, קהה ושטוחה – ואיך משתמשים בדף המשבצות.",
+  subtitle: "פרקים 20–21: זיהוי זוויות, סוגי זוויות, וסימון זוויות בכתיב מתמטי",
+  learnBlurb: "קרן, זווית, קודקוד ושוקיים; זווית ישרה, חדה, קהה ושטוחה; דף המשבצות; ואיך כותבים זווית: $∡B$, $∡ABC$, ו-$α$, $β$, $γ$, $δ$.",
   learn: ANGLES_LEARN,
   questions: ANGLES_QUESTIONS,
 });

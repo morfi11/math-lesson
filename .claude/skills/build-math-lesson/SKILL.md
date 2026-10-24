@@ -122,6 +122,11 @@ So far:
 
 The coordinate-system pages (29–30) came from a different Mishbetzet booklet.
 
+**Done in the app's angles chapter:** chapter 20 (questions 1–3, nums 101–103) and
+chapter 21 (questions 4–6, nums 104–106). The next is chapter 22, comparing angle
+sizes (p. 239). Continue the numbering at 107, and add each chapter's key ideas to
+the same explanation page.
+
 ## Hebrew math-text rules (summary — details in references)
 
 - In content strings, `$...$` marks math/coordinates. It renders as an LTR-isolated
